@@ -407,6 +407,7 @@ public:
     shapeprog->addAttribute("vertPos");
     shapeprog->addAttribute("vertNor");
     shapeprog->addAttribute("vertTex");
+
   }
 
 
@@ -471,6 +472,13 @@ public:
 
     glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
 
+	float angle = map(xpos, 0, 1920, -PI_CONST/4.0f, PI_CONST / 4.0f) + 3 * PI_CONST * 0.5;
+	angle = -angle;
+
+	vec4 cursor = vec4(25*sin(angle) , map(-ypos, -1080, 0, -4, 4), 25*cos(angle), 1);
+	//cursor = glm::rotate(glm::mat4(1), mycam.rot.y, vec3(0, 1, 0)) * cursor;
+
+
    
 
 
@@ -480,6 +488,13 @@ public:
 		{
 			cube->interp += frametime;
 			cube->interpBetween();
+			if (i == 0)
+			{
+				cube->postInterp.pos.x = cursor.x;
+				cube->postInterp.pos.y = cursor.y;
+				cube->postInterp.pos.z = cursor.z;
+				cube->postInterp.rot.y = angle;
+			}
 			cube->drawElement(prog, cubes.elements, mat4(1));
 		}
     }
@@ -519,7 +534,7 @@ int main(int argc, char **argv) {
     // Render scene.
     application->render();
 
-	application->serveradd();
+	//application->serveradd();
 	
     // Swap front and back buffers.
     glfwSwapBuffers(windowManager->getHandle());
