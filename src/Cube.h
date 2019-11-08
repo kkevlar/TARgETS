@@ -26,14 +26,15 @@ public:
 	MatrixIngridients source;
 	
 	int parent;
-	float speed;
+	float phase;
+	float interp;
 	
 	Cube();
 	Cube(int x, int y, int z, glm::vec3 centeroffset);
 	Cube(int x, int y, int z, glm:: vec3 centeroffset, int cubesSize);
-	void predraw(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM);
+	void sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM);
 	void drawElement(std::shared_ptr<Program> prog, std::vector<Cube> &elements, glm::mat4 parentM);
-	void interp_between(MatrixIngridients& a, MatrixIngridients& b, float z);
+	void interpBetween();
 
 private:
 	glm::mat4 cached_no_scale;
@@ -45,14 +46,9 @@ class CubeModel
 {
 public:
 	std::vector<Cube> elements;
-	//std::vector<int> snowman;
-	//std::vector<int> pickaxe;
 
 	int snowman_index;
 	int pickaxe_index;
-
-	//Cube snowmanParent;
-	//Cube pickaxeParent;
 
 	CubeModel();
 

@@ -9,6 +9,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+#define PI_CONST ((float)( 103993.0f / 33102.0f))
+
 using namespace glm;
 
 
@@ -68,7 +70,7 @@ using namespace glm;
 	{
 		cached_no_scale = glm::mat4(1);
 		parent = -1;
-		speed = 1;
+		phase = 1;
 
 		vec3 pos = vec3(x, y, z);
 		pos -= centeroffset;
@@ -77,7 +79,7 @@ using namespace glm;
 		target.pos = vec3(pos.x , pos.y , pos.z - 150 );
 		source.scale = vec3(0.5, 0.5, 0.5);
 		target.scale = vec3(0.00001, 0.00001, 0.00001);
-
+		interp = 0;
 		current.scale = vec3(0.5, 0.5, 0.5);
 	}
 
@@ -95,10 +97,11 @@ using namespace glm;
 	Cube::Cube(int x, int y, int z, vec3 centeroffset, int cubesSize)
 	{
 		init(x, y, z, centeroffset);
-		speed = map( (rand() % 3000) + (z * 1.0 * sign(z) ) * (4000.0f/(cubesSize * 1.0f)), 0, 7000, 0.2, 2.25);
+		phase = map( (rand() % 3000) + (z * 1.0 * sign(z) ) * (4000.0f/(cubesSize * 1.0f)), 0, 7000, 0, 0.3);
+		interp = phase;
 	}
 
-	void Cube::predraw(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM)
+	void Cube::sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM)
 	{
 		cached_no_scale = current.calc_no_scale();
 
@@ -114,15 +117,26 @@ using namespace glm;
 
 	void Cube::drawElement(std::shared_ptr<Program> prog, std::vector<Cube> &elements, glm::mat4 parentM)
 	{
-		predraw(prog, elements, parentM);
+		sendModelMatrix(prog, elements, parentM);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void*)0);
 	}
 
 	
 
-	void Cube::interp_between(MatrixIngridients& a, MatrixIngridients& b, float z)
+	void Cube::interpBetween()
 	{
-		current.self_interpolate_between(a, b, z);
+		float z;
+		
+		z = interp;
+
+		z = glm::clamp(z, 0.0f, 1.0f);
+		//z -= (((int)z));
+
+		z = map(z, 0.0f, 1.0f, -1*PI_CONST * 0.5, PI_CONST * 0.5f);
+		z = sin(z);
+		z = map(z, -1, 1, 0, 1);
+		z = glm::clamp(z, 0.0f, 1.0f);
+		current.self_interpolate_between(source, target, z);
 	}
 
 	

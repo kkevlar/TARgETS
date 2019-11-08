@@ -27,7 +27,7 @@ double get_last_elapsed_time() {
   return difference;
 }
 
-float piconst = 103993.0f / 33102.0f;
+#define PI_CONST ((float)( 103993.0f / 33102.0f))
 
 class camera {
 public:
@@ -226,9 +226,9 @@ public:
 	  pickaxe.source.scale = vec3(0, 0, 0);
 	  pickaxe.target.scale = vec3(0, 0, 0);
 	  pickaxe.source.pos = vec3(4, 0, 0);
-	  pickaxe.source.rot = vec3(0, -piconst / 4, 0.0);
+	  pickaxe.source.rot = vec3(0, -PI_CONST / 4, 0.0);
 	  pickaxe.source.anchor = vec3(0, 1.75, 0.0);
-	  pickaxe.target.rot = vec3(0, -piconst / 4, 0.0);
+	  pickaxe.target.rot = vec3(0, -PI_CONST / 4, 0.0);
 	  pickaxe.target.pos = vec3(4, 0, 0);
 	  cubes.elements.push_back(pickaxe);
 	  cubes.pickaxe_index = cubes.elements.size() - 1;
@@ -377,96 +377,6 @@ public:
                  GL_STATIC_DRAW);
 
     glBindVertexArray(0);
-
-    // generate the VAO
-    glGenVertexArrays(1, &CylinderArrayID);
-    glBindVertexArray(CylinderArrayID);
-
-    // generate vertex buffer to hand off to OGL
-    glGenBuffers(1, &CylinderVertexBufferId);
-    // set the current state to focus on our vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, CylinderVertexBufferId);
-
-    std::vector<float> cyl_vertex = std::vector<float>();
-    std::vector<float> cyl_color = std::vector<float>();
-
-    int samples = 128;
-    float delta = 2 * piconst * (1.0 / samples);
-    int i = 0;
-    for (i = 0; i < samples; i++) {
-      float angle = delta * i;
-      float x = cos(angle);
-      float y = sin(angle);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(-0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-
-      angle = delta * (i + 1);
-      x = cos(angle);
-      y = sin(angle);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(-0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-
-      angle = delta * i;
-      x = cos(angle);
-      y = sin(angle);
-
-      cyl_vertex.push_back(x);
-      cyl_vertex.push_back(y);
-      cyl_vertex.push_back(-0.5);
-      cyl_color.push_back(x);
-      cyl_color.push_back(y);
-      cyl_color.push_back(0);
-    }
-
-    // actually memcopy the data - only do this once
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cyl_vertex.size(),
-                 cyl_vertex.data(), GL_DYNAMIC_DRAW);
-
-    // we need to set up the vertex array
-    glEnableVertexAttribArray(0);
-    // key function to get up how many elements to pull out at a time (3)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
-    glGenBuffers(1, &CylinderVertexColorId);
-    // set the current state to focus on our vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, CylinderVertexColorId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cyl_color.size(),
-                 cyl_color.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
-    glBindVertexArray(0);
   }
 
   // General OGL initialization - set OGL state here
@@ -602,17 +512,11 @@ public:
     cubes.elements.data()[cubes.pickaxe_index].source.rot.z =
         -ypos / 100.0f;
 
+
+
     for (int i = 0; i <= cubes.elements.size(); i++) {
-
-      float interp = ((sin((a + (cubes.elements.data()[i].speed) / 2.0f) * 2) + 0.5) *
-                        2);
-      interp = glm::min(interp, 1.0f);
-      interp = glm::max(interp, -1.0f);
-      interp = glm::max(0.0f, interp);
-
-      cubes.elements.data()[i].interp_between(
-          cubes.elements.data()[i].source,
-          cubes.elements.data()[i].target, interp);
+		cubes.elements.data()[i].interp += frametime/2;
+      cubes.elements.data()[i].interpBetween();
       cubes.elements.data()[i].drawElement(prog, cubes.elements, GlobalR);
     }
 
