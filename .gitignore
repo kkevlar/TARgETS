@@ -1,0 +1,5 @@
+build/
+*/Debug/
+.DS_Store
+/.vs/
+/Debug/
