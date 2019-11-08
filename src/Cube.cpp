@@ -80,7 +80,7 @@ using namespace glm;
 		source.scale = vec3(0.5, 0.5, 0.5);
 		target.scale = vec3(0.00001, 0.00001, 0.00001);
 		interp = 0;
-		current.scale = vec3(0.5, 0.5, 0.5);
+		postInterp.scale = vec3(0.5, 0.5, 0.5);
 	}
 
 	Cube::Cube()
@@ -103,14 +103,14 @@ using namespace glm;
 
 	void Cube::sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM)
 	{
-		cached_no_scale = current.calc_no_scale();
+		cached_no_scale = postInterp.calc_no_scale();
 
 		if (parent >= 0)
 		{
 			cached_no_scale = elements.data()[parent].cached_no_scale * cached_no_scale;
 		}
 
-		glm::mat4 M = parentM * current.calc_scale(cached_no_scale);
+		glm::mat4 M = parentM * postInterp.calc_scale(cached_no_scale);
 
 		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 	}
@@ -136,7 +136,12 @@ using namespace glm;
 		z = sin(z);
 		z = map(z, -1, 1, 0, 1);
 		z = glm::clamp(z, 0.0f, 1.0f);
-		current.self_interpolate_between(source, target, z);
+		postInterp.self_interpolate_between(target, source, z);
+	}
+
+	void Cube::resetInterp()
+	{
+		interp = phase;
 	}
 
 	

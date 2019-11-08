@@ -24,21 +24,22 @@ public:
 	
 	MatrixIngridients target;
 	MatrixIngridients source;
+	MatrixIngridients postInterp;
 	
 	int parent;
 	float phase;
 	float interp;
-	
+	bool show;
 	Cube();
 	Cube(int x, int y, int z, glm::vec3 centeroffset);
 	Cube(int x, int y, int z, glm:: vec3 centeroffset, int cubesSize);
 	void sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM);
 	void drawElement(std::shared_ptr<Program> prog, std::vector<Cube> &elements, glm::mat4 parentM);
 	void interpBetween();
+	void resetInterp();
 
 private:
 	glm::mat4 cached_no_scale;
-	MatrixIngridients current;
 	void init(int x, int y, int z, glm::vec3 centeroffset);
 };
 

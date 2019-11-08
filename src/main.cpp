@@ -35,29 +35,32 @@ public:
   int w, a, s, d;
   camera() {
     w = a = s = d = 0;
-    pos = glm::vec3(0, 0, -15);
+    pos = glm::vec3(0, 0, 0);
     rot = glm::vec3(0, 0, 0);
   }
-  glm::mat4 process(double frametime) {
-    double ftime = frametime;
-    float speed = 0;
-    if (w == 1) {
-      speed = 10 * ftime;
-    } else if (s == 1) {
-      speed = -10 * ftime;
-    }
-    float yangle = 0;
-    if (a == 1)
-      yangle = -1 * ftime;
-    else if (d == 1)
-      yangle = 1 * ftime;
-    rot.y += yangle;
-    glm::mat4 R = mat4(1);
-    glm::vec4 dir = glm::vec4(0, 0, speed, 1);
-    dir = dir * R;
-    pos += glm::vec3(dir.x, dir.y, dir.z);
-    glm::mat4 T = glm::translate(glm::mat4(1), pos);
-    return R * T;
+  glm::mat4 process(double ftime)
+  {
+	  float speed = 0;
+	  if (w == 1)
+	  {
+		  speed = 1 * ftime;
+	  }
+	  else if (s == 1)
+	  {
+		  speed = -1 * ftime;
+	  }
+	  float yangle = 0;
+	  if (a == 1)
+		  yangle = -1 * ftime;
+	  else if (d == 1)
+		  yangle = 1 * ftime;
+	  rot.y += yangle*2;
+	  glm::mat4 R = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
+	  glm::vec4 dir = glm::vec4(0, 0, speed, 1);
+	  dir = dir * R;
+	  pos += glm::vec3(dir.x, dir.y, dir.z);
+	  glm::mat4 T = glm::translate(glm::mat4(1), pos);
+	  return R * T;
   }
 };
 
@@ -135,6 +138,13 @@ public:
       kn = 1;
     if (key == GLFW_KEY_N && action == GLFW_RELEASE)
       kn = 0;
+	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+	{
+		for (int i = 0; i < cubes.elements.size(); i++)
+		{
+			cubes.elements.at(i).resetInterp();
+		}
+	}
   }
 
   // callback for the mouse when clicked move the triangle when helper functions
@@ -162,96 +172,29 @@ public:
   }
 
   void initCubeModel() {
-	  float cs = ((float)cubesSize) / 2.0f;
-	  vec3 centeroffset = vec3(cs, cs, cs);
-	  centeroffset.y += cubesSize;
 
-	  Cube c = Cube();
-	  c.source.scale = vec3(0.0001, 0.0001, 0.0001);
-	  c.source.pos = vec3(0, 0, 0);
-	  c.target.pos = vec3(0, 0, 0);
-	  cubes.elements.push_back(c);
-	  cubes.snowman_index = cubes.elements.size() - 1;
+	  for (int i = 0; i < 200; i++)
+	  {
+		  Cube cube = Cube();
+		  cube.show = 0;
 
-	  for (int x = 0; x < cubesSize; x++) {
-		  for (int y = 0; y < cubesSize; y++) {
-			  for (int z = 0; z < cubesSize; z++) {
-				  Cube cube = Cube(x, y, z, centeroffset, cubesSize);
-				  cube.parent = cubes.snowman_index;
-
-				  float dist = length(cube.source.pos - centeroffset);
-
-				  cubes.elements.push_back(cube);
-
-				  // cubes.push_back(cubes.elements.size() - 1);
-			  }
+		  if (i  < 20)
+		  {
+			  cube.show = 1;
+			  cube.target.pos = vec3(i - 10, map(i%2,0,1,-1,1), 0);
+			  cube.target.pos = vec3(i - 10, map(i%2,0,1,-1,1), 0);
+			  cube.target.scale = vec3(0.5, 0.5, 0.5);
+			  cube.target.rot = vec3(0, 0, 0);
+			  cube.source = cube.target;
+			  cube.source.pos.z = -200;
+			  cube.source.scale = vec3(0.1, 0.1, 0.1);
+			  cube.phase = map(rand() % 1000, 0,1000,-0.3,0);
+			  cube.resetInterp();
 		  }
-	  }
-	  cs = ((float)cubesSize - 1) / 2.0f;
-	  centeroffset = vec3(cs, cs, cs);
-
-	  centeroffset.y -= 0;
-
-	  for (int x = 0; x < cubesSize - 1; x++) {
-		  for (int y = 0; y < cubesSize - 1; y++) {
-			  for (int z = 0; z < cubesSize - 1; z++) {
-				  Cube cube = Cube(x, y, z, centeroffset, cubesSize - 1);
-				  cube.parent = cubes.snowman_index;
-
-				  cubes.elements.push_back(cube);
-				  // cubes.snowman.push_back(cubes.elements.size() - 1);
-			  }
-		  }
-	  }
-
-	  cs = ((float)cubesSize - 2) / 2.0f;
-	  centeroffset = vec3(cs, cs, cs);
-
-	  centeroffset.y -= cubesSize - 1;
-
-	  for (int x = 0; x < cubesSize - 2; x++) {
-		  for (int y = 0; y < cubesSize - 2; y++) {
-			  for (int z = 0; z < cubesSize - 2; z++) {
-				  Cube cube = Cube(x, y, z, centeroffset, cubesSize - 2);
-				  cube.parent = cubes.snowman_index;
-
-				  cubes.elements.push_back(cube);
-				  // cubes.snowman.push_back(cubes.elements.size() - 1);
-			  }
-		  }
-	  }
-
-	  Cube pickaxe = Cube();
-
-	  pickaxe.source.scale = vec3(0, 0, 0);
-	  pickaxe.target.scale = vec3(0, 0, 0);
-	  pickaxe.source.pos = vec3(4, 0, 0);
-	  pickaxe.source.rot = vec3(0, -PI_CONST / 4, 0.0);
-	  pickaxe.source.anchor = vec3(0, 1.75, 0.0);
-	  pickaxe.target.rot = vec3(0, -PI_CONST / 4, 0.0);
-	  pickaxe.target.pos = vec3(4, 0, 0);
-	  cubes.elements.push_back(pickaxe);
-	  cubes.pickaxe_index = cubes.elements.size() - 1;
-
-	  for (int y = -5; y <= 5; y++) {
-		  Cube cube = Cube(5, y, 3, centeroffset);
-		  cube.parent = cubes.pickaxe_index;
-		  cube.source.pos.y = ((float)(y)) / 2.0;
-		  cube.source.pos.x = 0;
-		  cube.source.scale = vec3(0.25, 0.25, 0.25);
-		  cube.target.pos = cube.source.pos;
-		  cube.target.scale = svec(0.0001, cube.source.scale);
 		  cubes.elements.push_back(cube);
-	  }
-	  for (int x = -4; x <= 4; x++) {
-		  Cube cube = Cube(5, 1, 3, centeroffset);
-		  cube.parent = cubes.pickaxe_index;
-		  cube.source.pos.x = (((float)(x)) / 2.0);
-		  cube.source.pos.y = 2.5 - (abs(x)) / 5.0;
-		  cube.source.scale = vec3(0.25, 0.25, 0.25);
-		  cube.target.pos = cube.source.pos;
-		  cube.target.scale = svec(0.00001, cube.source.scale);
-		  cubes.elements.push_back(cube);
+
+		  
+
 	  }
 
   }
@@ -379,6 +322,42 @@ public:
     glBindVertexArray(0);
   }
 
+  void serveradd()
+  {
+	  static int chance = 0;
+	  static int addcount = 0;
+	  chance += 1;
+	  chance &= 0x3;
+
+	  if (chance == 0)
+	  {
+		  float x = rand() % 600;
+		  float y = rand() % 600;
+
+		  y -= 300;
+		  y /= 60.0f;
+
+		  x = map(x, 0, 600, -PI_CONST, -0.5 * PI_CONST);
+		  
+		  vec3 pos = vec3(0, y, 0);
+		  pos.x = 25 * sin(x);
+		  pos.z = 25 * cos(x);
+
+		  Cube* cube = &cubes.elements.data()[addcount++];
+		  cube->show = 1;
+		  cube->target.pos = pos;
+		  cube->target.scale = vec3(0.5, 0.5, 0.05);
+		  cube->target.rot = vec3(0, x, 0);
+		  cube->source = cube->target;
+		  cube->source.pos.z *= 100;
+		  cube->source.pos.x *= 100;
+		  cube->source.scale = vec3(0.1, 0.1, 0.1);
+		  cube->phase = map(rand() % 1000, 0, 1000, -0.3, 0);
+		  cube->resetInterp();
+
+	  }
+  }
+
   // General OGL initialization - set OGL state here
   void init(const std::string &resourceDirectory) {
     GLSL::checkVersion();
@@ -430,14 +409,6 @@ public:
     shapeprog->addAttribute("vertTex");
   }
 
-  void printmatrix(mat4 m) {
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        printf("%15.1f", m[i][j]);
-      }
-      printf("\n");
-    }
-  }
 
   /****DRAW
   This is the most important function in your program - this is where you
@@ -481,8 +452,7 @@ public:
         glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.0f, 0.0));
     glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-    glm::mat4 GlobalR =
-        glm::rotate(glm::mat4(1), mycam.rot.y, glm::vec3(0, 1, 0));
+  
 
     // Draw the box using GLSL.
     prog->bind();
@@ -495,29 +465,23 @@ public:
 	   
     glBindVertexArray(VertexArrayID);
 
-    static float a;
-    static float b;
-    static float mode = 0;
-
-    if (mode == 0) {
-      a += frametime * 0.25;
-    }
+    
 
     double xpos, ypos;
 
     glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
 
-    cubes.elements.data()[cubes.pickaxe_index].target.rot.z =
-        -ypos / 100.0f;
-    cubes.elements.data()[cubes.pickaxe_index].source.rot.z =
-        -ypos / 100.0f;
-
+   
 
 
     for (int i = 0; i <= cubes.elements.size(); i++) {
-		cubes.elements.data()[i].interp += frametime/2;
-      cubes.elements.data()[i].interpBetween();
-      cubes.elements.data()[i].drawElement(prog, cubes.elements, GlobalR);
+		Cube* cube = &cubes.elements.data()[i];
+		if (cube->show)
+		{
+			cube->interp += frametime;
+			cube->interpBetween();
+			cube->drawElement(prog, cubes.elements, mat4(1));
+		}
     }
 
     glBindVertexArray(0);
@@ -555,6 +519,8 @@ int main(int argc, char **argv) {
     // Render scene.
     application->render();
 
+	application->serveradd();
+	
     // Swap front and back buffers.
     glfwSwapBuffers(windowManager->getHandle());
     // Poll for and process events.
