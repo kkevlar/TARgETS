@@ -99,6 +99,7 @@ using namespace glm;
 		init(x, y, z, centeroffset);
 		phase = map( (rand() % 3000) + (z * 1.0 * sign(z) ) * (4000.0f/(cubesSize * 1.0f)), 0, 7000, 0, 0.3);
 		interp = phase;
+		
 	}
 
 	void Cube::sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM)
@@ -109,6 +110,15 @@ using namespace glm;
 		{
 			cached_no_scale = elements.data()[parent].cached_no_scale * cached_no_scale;
 		}
+
+		glm::mat4 M = parentM * postInterp.calc_scale(cached_no_scale);
+
+		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+	}
+
+	void Cube::sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM)
+	{
+		cached_no_scale = postInterp.calc_no_scale();
 
 		glm::mat4 M = parentM * postInterp.calc_scale(cached_no_scale);
 
@@ -131,10 +141,12 @@ using namespace glm;
 
 		z = glm::clamp(z, 0.0f, 1.0f);
 		//z -= (((int)z));
-
-		z = map(z, 0.0f, 1.0f, -1*PI_CONST * 0.5, PI_CONST * 0.5f);
-		z = sin(z);
-		z = map(z, -1, 1, 0, 1);
+		if (dosin)
+		{
+			z = map(z, 0.0f, 1.0f, -1 * PI_CONST * 0.5, PI_CONST * 0.5f);
+			z = sin(z);
+			z = map(z, -1, 1, 0, 1);
+		}
 		z = glm::clamp(z, 0.0f, 1.0f);
 		postInterp.self_interpolate_between(target, source, z);
 	}

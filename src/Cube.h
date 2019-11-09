@@ -30,9 +30,12 @@ public:
 	float phase;
 	float interp;
 	bool show;
+	bool hit;
+	bool dosin;
 	Cube();
 	Cube(int x, int y, int z, glm::vec3 centeroffset);
 	Cube(int x, int y, int z, glm:: vec3 centeroffset, int cubesSize);
+	void sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM);
 	void sendModelMatrix(std::shared_ptr<Program> prog, std::vector<Cube>& elements, glm::mat4 parentM);
 	void drawElement(std::shared_ptr<Program> prog, std::vector<Cube> &elements, glm::mat4 parentM);
 	void interpBetween();

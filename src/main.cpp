@@ -80,6 +80,7 @@ class Application : public EventCallbacks {
 
 public:
   int kn = 0;
+  int md = 0;
   WindowManager *windowManager = nullptr;
 
   // Our shader program
@@ -96,7 +97,8 @@ public:
       CylinderBufferIndeciesID;
 
   Shape shape;
-  Shape sphere;
+
+  Cube ball;
 
   int arm_l, arm_r;
   std::vector<Cube> cylinders;
@@ -142,7 +144,7 @@ public:
 	{
 		for (int i = 0; i < cubes.elements.size(); i++)
 		{
-			cubes.elements.at(i).resetInterp();
+			cubes.elements.at(i).hit = 0;
 		}
 	}
   }
@@ -153,9 +155,13 @@ public:
     double posX, posY;
     float newPt[2];
     if (action == GLFW_PRESS) {
-      glfwGetCursorPos(window, &posX, &posY);
-      std::cout << "Pos X " << posX << " Pos Y " << posY << std::endl;
+		md = 1;
+		 
     }
+	else if (action == GLFW_RELEASE) {
+		md = 0;
+
+	}
   }
 
   // if the window is resized, capture the new size and reset the viewport
@@ -173,24 +179,10 @@ public:
 
   void initCubeModel() {
 
-	  for (int i = 0; i < 200; i++)
+	  for (int i = 0; i < 0x400; i++)
 	  {
 		  Cube cube = Cube();
 		  cube.show = 0;
-
-		  if (i  < 20)
-		  {
-			  cube.show = 1;
-			  cube.target.pos = vec3(i - 10, map(i%2,0,1,-1,1), 0);
-			  cube.target.pos = vec3(i - 10, map(i%2,0,1,-1,1), 0);
-			  cube.target.scale = vec3(0.5, 0.5, 0.5);
-			  cube.target.rot = vec3(0, 0, 0);
-			  cube.source = cube.target;
-			  cube.source.pos.z = -200;
-			  cube.source.scale = vec3(0.1, 0.1, 0.1);
-			  cube.phase = map(rand() % 1000, 0,1000,-0.3,0);
-			  cube.resetInterp();
-		  }
 		  cubes.elements.push_back(cube);
 
 		  
@@ -206,11 +198,7 @@ public:
     shape.loadMesh(resourceDirectory + "/sphere.obj");
     shape.resize();
     shape.init();
-
-    sphere.loadMesh(resourceDirectory + "/sphere.obj");
-    sphere.resize();
-    sphere.init();
-
+	
     // generate the VAO
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -327,7 +315,7 @@ public:
 	  static int chance = 0;
 	  static int addcount = 0;
 	  chance += 1;
-	  chance &= 0x3;
+	  chance &= 0xF;
 
 	  if (chance == 0)
 	  {
@@ -337,14 +325,16 @@ public:
 		  y -= 300;
 		  y /= 60.0f;
 
-		  x = map(x, 0, 600, -PI_CONST, -0.5 * PI_CONST);
+		  x = map(x, 0, 600, -PI_CONST,0);
 		  
 		  vec3 pos = vec3(0, y, 0);
 		  pos.x = 25 * sin(x);
 		  pos.z = 25 * cos(x);
 
-		  Cube* cube = &cubes.elements.data()[addcount++];
-		  cube->show = 1;
+		  Cube* cube = &cubes.elements.data()[((addcount++) & 0x3FF)];	 
+		cube->show = 1;
+		cube->hit = 0;
+		cube->dosin = 1;
 		  cube->target.pos = pos;
 		  cube->target.scale = vec3(0.5, 0.5, 0.05);
 		  cube->target.rot = vec3(0, x, 0);
@@ -386,6 +376,7 @@ public:
     prog->addUniform("P");
     prog->addUniform("V");
     prog->addUniform("M");
+	prog->addUniform("bonuscolor");
     prog->addAttribute("vertPos");
     prog->addAttribute("vertColor");
     // Initialize the GLSL program.
@@ -403,7 +394,6 @@ public:
     shapeprog->addUniform("V");
     shapeprog->addUniform("M");
     shapeprog->addUniform("camPos");
-    shapeprog->addUniform("isglass");
     shapeprog->addAttribute("vertPos");
     shapeprog->addAttribute("vertNor");
     shapeprog->addAttribute("vertTex");
@@ -472,35 +462,99 @@ public:
 
     glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
 
-	float angle = map(xpos, 0, 1920, -PI_CONST/4.0f, PI_CONST / 4.0f) + 3 * PI_CONST * 0.5;
-	angle = -angle;
 
-	vec4 cursor = vec4(25*sin(angle) , map(-ypos, -1080, 0, -4, 4), 25*cos(angle), 1);
-	//cursor = glm::rotate(glm::mat4(1), mycam.rot.y, vec3(0, 1, 0)) * cursor;
+	float angle = map(xpos, 0, 1920, sin(- PI_CONST * 0.25), sin(PI_CONST * 0.25));
+	
 
+
+	angle = asin(-angle);
+
+	angle -= mycam.rot.y;
+	angle += PI_CONST;
+
+	float vangle = map(-ypos, -1080, 0, -10, 10);
+
+	vec4 cursor = vec4(26*sin(angle) ,vangle, 26*cos(angle), 1);
+	if (md)
+	{
+		ball.source.scale = vec3(4, 4, 4);
+		ball.source.pos = vec3(0, -8, 0);
+		ball.source.rot = vec3(0, 0, 0);
+		ball.target = ball.source;
+		
+
+		ball.target.pos = ((vec3) ((cursor)));
+		ball.target.scale = vec3(0.1,0.1,0.1);
+		ball.phase = 0;
+		ball.resetInterp();
+	}
 
    
 
+	Cube* cursorcube = NULL;
+
+
+	ball.interp += frametime*3;
+	ball.interpBetween();
+
+	
 
     for (int i = 0; i <= cubes.elements.size(); i++) {
 		Cube* cube = &cubes.elements.data()[i];
 		if (cube->show)
 		{
-			cube->interp += frametime;
+			
+			cube->interp += frametime/2;
 			cube->interpBetween();
 			if (i == 0)
 			{
+				cursorcube = cube;
 				cube->postInterp.pos.x = cursor.x;
 				cube->postInterp.pos.y = cursor.y;
 				cube->postInterp.pos.z = cursor.z;
 				cube->postInterp.rot.y = angle;
+				cube->postInterp.scale = vec3(0.25,0.25,0.25);
+				cube->postInterp.rot.x = sin(-vangle / 10);
 			}
+			
+			if (cube != cursorcube && !cube->hit && distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
+			{
+				cube->hit = 1;
+				cube->source = cube->postInterp;
+				cube->target = cube->source;
+				cube->target.scale *= 0.25f;
+				cube->target.rot.y = 8 * PI_CONST;
+				cube->phase = 0.1;
+				cube->dosin = 0;
+				cube->resetInterp();	
+			}
+			if (cube != cursorcube && cube->hit && cube->interp > 1)
+			{
+				cube->show = 0;
+			}
+			if(cube->hit)
+			 glUniform3f(prog->getUniform("bonuscolor"), 1, 0, 0);
+			else glUniform3f(prog->getUniform("bonuscolor"), 0, 0, 0);
+				
 			cube->drawElement(prog, cubes.elements, mat4(1));
 		}
     }
 
     glBindVertexArray(0);
     prog->unbind();
+
+	shapeprog->bind();
+
+	glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+	glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+	glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+
+	
+
+	ball.sendModelMatrix(shapeprog, glm::mat4(1));
+	shape.draw(shapeprog);
+
+	shapeprog->unbind();
 
    
   }
@@ -529,12 +583,14 @@ int main(int argc, char **argv) {
   application->initGeom();
   application->initCubeModel();
 
+  glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
   // Loop until the user closes the window.
   while (!glfwWindowShouldClose(windowManager->getHandle())) {
     // Render scene.
     application->render();
 
-	//application->serveradd();
+	application->serveradd();
 	
     // Swap front and back buffers.
     glfwSwapBuffers(windowManager->getHandle());
