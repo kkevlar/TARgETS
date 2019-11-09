@@ -179,6 +179,8 @@ public:
 
   void initCubeModel() {
 
+	  ball.show = 0;
+
 	  for (int i = 0; i < 0x400; i++)
 	  {
 		  Cube cube = Cube();
@@ -486,7 +488,13 @@ public:
 		ball.target.pos = ((vec3) ((cursor)));
 		ball.target.scale = vec3(0.1,0.1,0.1);
 		ball.phase = 0;
+		ball.show = 1;
 		ball.resetInterp();
+	}
+
+	if (ball.interp > 1)
+	{
+		ball.show = 0;
 	}
 
    
@@ -543,19 +551,21 @@ public:
     glBindVertexArray(0);
     prog->unbind();
 
-	shapeprog->bind();
+	if (ball.show)
+	{
+		shapeprog->bind();
 
-	glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
-	glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-	glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+		glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
-	
 
-	ball.sendModelMatrix(shapeprog, glm::mat4(1));
-	shape.draw(shapeprog);
 
-	shapeprog->unbind();
+		ball.sendModelMatrix(shapeprog, glm::mat4(1));
+		shape.draw(shapeprog);
 
+		shapeprog->unbind();
+	}
    
   }
 };
