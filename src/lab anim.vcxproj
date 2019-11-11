@@ -26,12 +26,14 @@
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Shape.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="message.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLSL.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="MatrixStack.h" />
+    <ClInclude Include="message.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Shape.h" />
     <ClInclude Include="tiny_obj_loader.h" />
