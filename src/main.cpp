@@ -11,6 +11,8 @@ ZJ Wood CPE 471 Lab 3 base code
 #include "GLSL.h"
 #include "MatrixStack.h"
 #include "Program.h"
+#include "message.h"
+#include "webclient.h"
 
 #include "Shape.h"
 #include "WindowManager.h"
@@ -19,6 +21,10 @@ ZJ Wood CPE 471 Lab 3 base code
 #include <glm/gtc/type_ptr.hpp>
 using namespace glm;
 using namespace std;
+
+#define PI_CONST ((float)( 103993.0f / 33102.0f))
+
+
 double get_last_elapsed_time() {
   static double lasttime = glfwGetTime();
   double actualtime = glfwGetTime();
@@ -27,7 +33,6 @@ double get_last_elapsed_time() {
   return difference;
 }
 
-#define PI_CONST ((float)( 103993.0f / 33102.0f))
 
 class camera {
 public:
@@ -64,15 +69,6 @@ public:
   }
 };
 
-glm::vec3 svec(float scale, glm::vec3 v) {
-  glm::vec3 result;
-
-  result.x = v.x * scale;
-  result.y = v.y * scale;
-  result.z = v.z * scale;
-
-  return result;
-}
 
 camera mycam;
 
@@ -142,10 +138,6 @@ public:
       kn = 0;
 	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
 	{
-		for (int i = 0; i < cubes.elements.size(); i++)
-		{
-			cubes.elements.at(i).hit = 0;
-		}
 	}
   }
 
@@ -181,14 +173,11 @@ public:
 
 	  ball.show = 0;
 
-	  for (int i = 0; i < 0x400; i++)
+	  for (int i = 0; i < 0x80; i++)
 	  {
 		  Cube cube = Cube();
 		  cube.show = 0;
 		  cubes.elements.push_back(cube);
-
-		  
-
 	  }
 
   }
@@ -312,43 +301,6 @@ public:
     glBindVertexArray(0);
   }
 
-  void serveradd()
-  {
-	  static int chance = 0;
-	  static int addcount = 0;
-	  chance += 1;
-	  chance &= 0xF;
-
-	  if (chance == 0)
-	  {
-		  float x = rand() % 600;
-		  float y = rand() % 600;
-
-		  y -= 300;
-		  y /= 60.0f;
-
-		  x = map(x, 0, 600, -PI_CONST,0);
-		  
-		  vec3 pos = vec3(0, y, 0);
-		  pos.x = 25 * sin(x);
-		  pos.z = 25 * cos(x);
-
-		  Cube* cube = &cubes.elements.data()[((addcount++) & 0x3FF)];	 
-		cube->show = 1;
-		cube->hit = 0;
-		cube->dosin = 1;
-		  cube->target.pos = pos;
-		  cube->target.scale = vec3(0.5, 0.5, 0.05);
-		  cube->target.rot = vec3(0, x, 0);
-		  cube->source = cube->target;
-		  cube->source.pos.z *= 100;
-		  cube->source.pos.x *= 100;
-		  cube->source.scale = vec3(0.1, 0.1, 0.1);
-		  cube->phase = map(rand() % 1000, 0, 1000, -0.3, 0);
-		  cube->resetInterp();
-
-	  }
-  }
 
   // General OGL initialization - set OGL state here
   void init(const std::string &resourceDirectory) {
@@ -502,14 +454,14 @@ public:
 	Cube* cursorcube = NULL;
 
 
-	ball.interp += frametime*3;
+	ball.interp += 3*frametime;
 	ball.interpBetween();
 
 	
 
     for (int i = 0; i <= cubes.elements.size(); i++) {
 		Cube* cube = &cubes.elements.data()[i];
-		if (cube->show)
+		if (cube->show || i == 0)
 		{
 			
 			cube->interp += frametime/2;
@@ -523,6 +475,7 @@ public:
 				cube->postInterp.rot.y = angle;
 				cube->postInterp.scale = vec3(0.25,0.25,0.25);
 				cube->postInterp.rot.x = sin(-vangle / 10);
+				cube->show = 1;
 			}
 			
 			if (cube != cursorcube && !cube->hit && distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
@@ -595,17 +548,27 @@ int main(int argc, char **argv) {
 
   glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
+  MessageContext context;
+
+  context.boxes = &application->cubes.elements;
+  clientbegin(&context);
+  
+  static int count = 0;
+
   // Loop until the user closes the window.
   while (!glfwWindowShouldClose(windowManager->getHandle())) {
     // Render scene.
     application->render();
-
-	application->serveradd();
 	
     // Swap front and back buffers.
     glfwSwapBuffers(windowManager->getHandle());
     // Poll for and process events.
     glfwPollEvents();
+
+	if(count == 0)
+		clientread();
+
+	count = (count + 1) & 0x3F;
   }
 
   // Quit program.

@@ -1,8 +1,9 @@
+#pragma once
 
-#ifndef MESSAGE_H
-#define MESSAGE_H
-
+#include <vector>
 #include <stdint.h>
+#include "Cube.h"
+
 typedef uint8_t MessageId;
 
 #define MSG_INVALID ((MessageId) 0) 
@@ -22,11 +23,10 @@ typedef uint8_t MessageId;
 
 typedef struct MessageContext
 {
-	int reserved;
+	std::vector<Cube>* boxes;
 } MessageContext;
 
 void initMessageHandler(MessageContext* context);
 void handleMessage(MessageId id, uint8_t* message, int length);
 
-#endif
 
