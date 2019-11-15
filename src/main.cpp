@@ -24,6 +24,8 @@ using namespace std;
 
 #define PI_CONST ((float)( 103993.0f / 33102.0f))
 
+static uint8_t tmpWriteBuf[256];
+
 
 double get_last_elapsed_time() {
   static double lasttime = glfwGetTime();
@@ -95,6 +97,8 @@ public:
   Shape shape;
 
   Cube ball;
+
+  float temporary_cursor;
 
   int arm_l, arm_r;
   std::vector<Cube> cylinders;
@@ -416,19 +420,18 @@ public:
 
     glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
 
-
-	float angle = map(xpos, 0, 1920, sin(- PI_CONST * 0.25), sin(PI_CONST * 0.25));
-	
-
-
+	float angle = map(xpos, 0, 1920, sin(-PI_CONST * 0.25), sin(PI_CONST * 0.25));
 	angle = asin(-angle);
-
 	angle -= mycam.rot.y;
 	angle += PI_CONST;
-
 	float vangle = map(-ypos, -1080, 0, -10, 10);
 
-	vec4 cursor = vec4(26*sin(angle) ,vangle, 26*cos(angle), 1);
+	assignBytesFromFloat(tmpWriteBuf, angle, 2);
+	clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 2);
+	angle = temporary_cursor;
+
+	vec4 cursor = vec4(26 * sin(angle), vangle, 26 * cos(angle), 1);
+	
 	if (md)
 	{
 		ball.source.scale = vec3(4, 4, 4);
@@ -436,7 +439,6 @@ public:
 		ball.source.rot = vec3(0, 0, 0);
 		ball.target = ball.source;
 		
-
 		ball.target.pos = ((vec3) ((cursor)));
 		ball.target.scale = vec3(0.1,0.1,0.1);
 		ball.phase = 0;
@@ -447,9 +449,7 @@ public:
 	if (ball.interp > 1)
 	{
 		ball.show = 0;
-	}
-
-   
+	}  
 
 	Cube* cursorcube = NULL;
 
@@ -458,6 +458,7 @@ public:
 	ball.interpBetween();
 
 	
+
 
     for (int i = 0; i <= cubes.elements.size(); i++) {
 		Cube* cube = &cubes.elements.data()[i];
@@ -492,6 +493,8 @@ public:
 			if (cube != cursorcube && cube->hit && cube->interp > 1)
 			{
 				cube->show = 0;
+				assignBytesFromNum(tmpWriteBuf, i, 2);
+				clientMsgWrite(MSG_REMBOX, tmpWriteBuf, 2);
 			}
 			if(cube->hit)
 			 glUniform3f(prog->getUniform("bonuscolor"), 1, 0, 0);
@@ -551,6 +554,7 @@ int main(int argc, char **argv) {
   MessageContext context;
 
   context.boxes = &application->cubes.elements;
+  context.temporary_cursor = &application->temporary_cursor;
   clientbegin(&context);
   
   static int count = 0;
@@ -565,10 +569,13 @@ int main(int argc, char **argv) {
     // Poll for and process events.
     glfwPollEvents();
 
-	if(count == 0)
+	if (count == 0)
+	{
 		clientread();
+		clientflush();
+	}
 
-	count = (count + 1) & 0x3F;
+	count = (count + 1) & 0x7;
   }
 
   // Quit program.

@@ -10,6 +10,7 @@
 
 #include <string.h>
 #include "message.h"
+#include "webclient.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -28,8 +29,8 @@ SOCKET ConnectSocket = INVALID_SOCKET;
 struct addrinfo* result = NULL,
 	* ptr = NULL,
 	hints;
-char* sendbuf = "this is a test";
 char recvbuf[DEFAULT_BUFLEN];
+char sendbuf[DEFAULT_BUFLEN];
 int iResult;
 int recvbuflen = DEFAULT_BUFLEN;
 
@@ -87,29 +88,55 @@ int __cdecl clientbegin(MessageContext* context)
 		return 1;
 	}
 
-	// Send an initial buffer
-	iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-	if (iResult == SOCKET_ERROR) {
-		printf("send failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	printf("Bytes Sent: %ld\n", iResult);
-
-	// shutdown the connection since no more data will be sent
-	iResult = shutdown(ConnectSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR) {
-		printf("shutdown failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return 1;
-	}
+	
 
 	   
 	return 0;
 }
+
+int sendbufindex = 0;
+
+void clientMsgWrite(MessageId code, uint8_t* data, int len)
+{
+	uint8_t sml_len = len;
+	clientwrite(&code, 1);
+	clientwrite(&sml_len, 1);
+	clientwrite(data, len);
+}
+
+void clientwrite(uint8_t* bytes, int length)
+{
+	for (int i = 0; i < length && sendbufindex < sizeof(sendbuf) / sizeof(char); i++, sendbufindex++)
+	{
+		sendbuf[sendbufindex] = bytes[i];
+	}
+}
+
+void clientflush()
+{
+	// Send an initial buffer
+	int big = sizeof(sendbuf);
+	int amount = 0;
+	int sz = sendbufindex;
+	amount = sz;
+	if (sz > big)
+		amount = big;
+
+	if (amount == 0)
+	{
+		return;
+	}
+
+	iResult = send(ConnectSocket, sendbuf, amount , 0);
+	if (iResult == SOCKET_ERROR) {
+		printf("send failed with error: %d\n", WSAGetLastError());
+		closesocket(ConnectSocket);
+		WSACleanup();
+	}
+
+	sendbufindex = 0;
+}
+
 
  int code = 0;
  int length = -1;
@@ -137,14 +164,7 @@ void clientread()
 			}
 			else if (bufindex < length)
 			{
-				union janky
-				{
-					char c;
-					uint8_t oof;
-				};
-				union janky j;
-				j.c = recvbuf[i];
-				buf[bufindex++]  = j.oof;
+				buf[bufindex++] = recvbuf[i];
 			}
 			else
 			{
@@ -152,10 +172,6 @@ void clientread()
 				code = 0;
 				length = -1;
 				bufindex = 0;
-				for (int j = 0; j < 256; j++)
-				{
-					buf[j] = 0;
-				}
 				i--;
 			}
 		}
@@ -172,6 +188,15 @@ void clientread()
 void clientend()
 {
 	// cleanup
+
+	// shutdown the connection since no more data will be sent
+	iResult = shutdown(ConnectSocket, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+		printf("shutdown failed with error: %d\n", WSAGetLastError());
+		closesocket(ConnectSocket);
+		WSACleanup();
+	}
+
 	closesocket(ConnectSocket);
 	WSACleanup();
 }
