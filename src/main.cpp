@@ -102,6 +102,8 @@ public:
 
   int arm_l, arm_r;
   std::vector<Cube> cylinders;
+  std::vector<CylCoords> cursors;
+
 
   CubeModel cubes;
   int cubesSize = 5;
@@ -420,17 +422,20 @@ public:
 
     glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
 
-	float angle = map(xpos, 0, 1920, sin(-PI_CONST * 0.25), sin(PI_CONST * 0.25));
+	float angle = map(xpos, 0, width, sin(-PI_CONST * 0.25), sin(PI_CONST * 0.25));
 	angle = asin(-angle);
 	angle -= mycam.rot.y;
 	angle += PI_CONST;
-	float vangle = map(-ypos, -1080, 0, -10, 10);
+	float vangle = map(-ypos, -height, 0, 0, 1);
 
-	assignBytesFromFloat(tmpWriteBuf, angle, 2);
-	clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 2);
-	angle = temporary_cursor;
+	assignBytesFromFloat(tmpWriteBuf, angle, 3);
+	assignBytesFromFloat(tmpWriteBuf+3, vangle, 3);
+	clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 6);
 
-	vec4 cursor = vec4(26 * sin(angle), vangle, 26 * cos(angle), 1);
+	CylCoords myCursor;
+	myCursor.angle = angle;
+	myCursor.height = vangle;
+	myCursor.calc_result();
 	
 	if (md)
 	{
@@ -439,7 +444,7 @@ public:
 		ball.source.rot = vec3(0, 0, 0);
 		ball.target = ball.source;
 		
-		ball.target.pos = ((vec3) ((cursor)));
+		ball.target.pos = myCursor.result.pos;
 		ball.target.scale = vec3(0.1,0.1,0.1);
 		ball.phase = 0;
 		ball.show = 1;
@@ -451,13 +456,27 @@ public:
 		ball.show = 0;
 	}  
 
-	Cube* cursorcube = NULL;
 
 
 	ball.interp += 3*frametime;
 	ball.interpBetween();
 
-	
+	/*myCursor.calc_result();
+	M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
+	glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void*)0);*/
+
+	for (int i = 0; i < cursors.size(); i++)
+       {
+               if (cursors.data()[i].show)               
+			   {			  
+                       cursors.data()[i].calc_result();
+                       M = cursors.data()[i].result.calc_scale(cursors.data()[i].result.calc_no_scale());
+                       glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+                       glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void*)0);
+               }
+       }
+
 
 
     for (int i = 0; i <= cubes.elements.size(); i++) {
@@ -467,19 +486,8 @@ public:
 			
 			cube->interp += frametime/2;
 			cube->interpBetween();
-			if (i == 0)
-			{
-				cursorcube = cube;
-				cube->postInterp.pos.x = cursor.x;
-				cube->postInterp.pos.y = cursor.y;
-				cube->postInterp.pos.z = cursor.z;
-				cube->postInterp.rot.y = angle;
-				cube->postInterp.scale = vec3(0.25,0.25,0.25);
-				cube->postInterp.rot.x = sin(-vangle / 10);
-				cube->show = 1;
-			}
 			
-			if (cube != cursorcube && !cube->hit && distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
+			if (!cube->hit && distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
 			{
 				cube->hit = 1;
 				cube->source = cube->postInterp;
@@ -489,12 +497,12 @@ public:
 				cube->phase = 0.1;
 				cube->dosin = 0;
 				cube->resetInterp();	
-			}
-			if (cube != cursorcube && cube->hit && cube->interp > 1)
-			{
-				cube->show = 0;
 				assignBytesFromNum(tmpWriteBuf, i, 2);
 				clientMsgWrite(MSG_REMBOX, tmpWriteBuf, 2);
+			}
+			if (cube->hit && cube->interp > 1)
+			{
+				cube->show = 0;
 			}
 			if(cube->hit)
 			 glUniform3f(prog->getUniform("bonuscolor"), 1, 0, 0);
@@ -554,7 +562,17 @@ int main(int argc, char **argv) {
   MessageContext context;
 
   context.boxes = &application->cubes.elements;
-  context.temporary_cursor = &application->temporary_cursor;
+
+  application->cursors = std::vector<CylCoords>();
+  for (int i = 0; i < 128; i++)
+	   {
+	  CylCoords c;
+	  c.show = 0;
+	  application->cursors.push_back(c);
+	  }
+  context.cursors = &application->cursors;
+
+
   clientbegin(&context);
   
   static int count = 0;

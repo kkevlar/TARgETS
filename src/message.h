@@ -24,7 +24,7 @@ typedef uint8_t MessageId;
 typedef struct MessageContext
 {
 	std::vector<Cube>* boxes;
-	float* temporary_cursor;
+	std::vector<CylCoords>* cursors;
 } MessageContext;
 
 void assignBytesFromNum(uint8_t* buf, int num, int bytes);

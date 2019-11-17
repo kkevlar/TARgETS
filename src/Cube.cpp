@@ -60,9 +60,18 @@ using namespace glm;
 		return noscale * scaleMat;
 	}
 
-
-	static inline float map(float value, float min1, float max1, float min2, float max2) {
+	static inline float map(float value, float min1, float max1, float min2,
+		float max2) {
 		return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+	}
+
+
+	void CylCoords::calc_result()
+	{
+		result.pos = vec3(26 * sin(angle), map(height, 0, 1, -10, 10), 26 * cos(angle));
+		result.scale = vec3(0.25, 0.25, 0.25);
+		result.rot.y = angle;
+		result.rot.x = map(-height, -1, 0, -1, 1);
 	}
 
 

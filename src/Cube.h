@@ -16,6 +16,17 @@ public:
 	void self_interpolate_between(MatrixIngridients& a, MatrixIngridients& b, float z);
 };
 
+class CylCoords
+{
+public:
+	float angle;
+	float height;
+	bool show;
+	MatrixIngridients result;
+
+	void calc_result();
+};
+
 class Cube
 {
 

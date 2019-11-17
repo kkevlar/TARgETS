@@ -24,7 +24,7 @@ static inline float map(float value, float min1, float max1, float min2,
 	return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-#define FLOAT_DEGREES 256
+#define FLOAT_DEGREES 10000
 
 void assignBytesFromNum(uint8_t* buf, int num, int bytes)
 {
@@ -94,14 +94,36 @@ void handlerRemoveBox(MessageContext* context, uint8_t* data, int length)
 		return; 
 
 	uint32_t iindex = assignNumFromBytes(data + 0, 2);
-	context->boxes->data()[iindex].show = 0;
+
+	Cube* cube = &context->boxes->data()[iindex];
+	cube->hit = 1;
+	cube->source = cube->postInterp;
+	cube->target = cube->source;
+	cube->target.scale *= 0.25f;
+	cube->target.rot.y = 8 * PI_CONST;
+	cube->phase = 0.1;
+	cube->dosin = 0;
+	cube->resetInterp();
 }
 
 
 void handlerCursorList(MessageContext* context, uint8_t* data, int length)
 {
-	if(length >= 3)
-	*context->temporary_cursor = assignFloatFromBytes(data+1, 2);
+	if (length % 7 != 0)
+	{
+		printf("Cursor list gonna break! %d\n", length);
+		return;
+	}
+		for (int i = 0; i < length; i += 7)
+		{
+			int index = assignNumFromBytes(data + i, 1);
+			if (data[index] < context->cursors->size())
+			{
+				context->cursors->data()[index].angle = assignFloatFromBytes(data + 1 + i, 3);
+				context->cursors->data()[index].height = assignFloatFromBytes(data + 4 + i, 3);
+				context->cursors->data()[index].show = 1;
+			}
+	}
 }
 
 void initMessageHandler(MessageContext* context)
