@@ -28,6 +28,8 @@ typedef struct MessageContext
 	std::mutex mutex_boxes;
 	std::vector<CylCoords>* cursors;
 	std::mutex mutex_cursors;
+    int16_t player_id;
+    ColorList color_list;
 } MessageContext;
 
 void assignBytesFromNum(uint8_t* buf, int num, int bytes);

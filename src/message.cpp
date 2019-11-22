@@ -3,7 +3,10 @@
 #include "message.h"
 #include <stdio.h>
 
-static void (*handler_table[0x100])(MessageContext *, MessageId id, uint8_t *, uint8_t);
+static void (*handler_table[0x100])(MessageContext *,
+                                    MessageId id,
+                                    uint8_t *,
+                                    uint8_t);
 static MessageContext *mycontext;
 
 void handleMessage(MessageId id, uint8_t *message, int length)
@@ -16,11 +19,10 @@ void handlerDefault(MessageContext *context,
                     uint8_t *data,
                     uint8_t length)
 {
-    fprintf(
-        stderr,
-        "Ignoring message (id=%4u) of %4u bytes: this message type is unimplemented\n",
-		id,
-        length);
+    fprintf(stderr,
+            "Ignoring message (id=%4u) of %4u bytes: this message type is "
+            "unimplemented\n",
+            id, length);
 }
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
@@ -44,7 +46,7 @@ void assignBytesFromNum(uint8_t *buf, int num, int bytes)
 void assignBytesFromFloat(uint8_t *buf, float num, int bytes)
 {
     buf[0] = (!(!(num < 0)));
-    assignBytesFromNum(buf+1, abs(num) * (FLOAT_DEGREES + 0.0f), bytes-1);
+    assignBytesFromNum(buf + 1, abs(num) * (FLOAT_DEGREES + 0.0f), bytes - 1);
 }
 
 uint32_t assignNumFromBytes(uint8_t *buf, int bytes)
@@ -60,11 +62,11 @@ uint32_t assignNumFromBytes(uint8_t *buf, int bytes)
 float assignFloatFromBytes(uint8_t *buf, int bytes)
 {
     uint32_t num = 0;
-    num = assignNumFromBytes(buf+1, bytes-1);
+    num = assignNumFromBytes(buf + 1, bytes - 1);
     float f = (float)num;
     f /= (FLOAT_DEGREES + 0.0f);
 
-	if (buf[0]) f *= -1;
+    if (buf[0]) f *= -1;
     return f;
 }
 
@@ -113,9 +115,8 @@ void handlerRemoveBox(MessageContext *context,
                       uint8_t *data,
                       uint8_t length)
 {
-    if (length < 2) return;
-
-    uint32_t iindex = assignNumFromBytes(data + 0, 2);
+    uint8_t shooter_id = data[0];
+    uint32_t iindex = assignNumFromBytes(data + 1, 2);
 
     bool error = 0;
     Cube cube;
@@ -142,6 +143,7 @@ void handlerRemoveBox(MessageContext *context,
     cube.target.rot.y = 8 * PI_CONST;
     cube.phase = 0.1;
     cube.dosin = 0;
+    cube.bonuscolor = context->color_list.get_color(shooter_id);
     cube.resetInterp();
 
     context->mutex_boxes.lock();
@@ -157,27 +159,34 @@ void handlerCursorList(MessageContext *context,
                        uint8_t *data,
                        uint8_t length)
 {
-    if (length % 7 != 0)
+    if (length % (1 + 5 + 5) != 0)
     {
         printf("Cursor list gonna break! %d\n", length);
-        return;
     }
-    for (int i = 0; i < length; i += 7)
+    for (int i = 0; i < length; i += (1 + 5 + 5))
     {
         int index = assignNumFromBytes(data + i, 1);
 
-		context->mutex_cursors.lock();
+        context->mutex_cursors.lock();
         if (data[index] < context->cursors->size())
         {
             context->cursors->data()[index].angle =
-                assignFloatFromBytes(data + 1 + i, 3);
+                assignFloatFromBytes(data + 1 + i, 5);
             context->cursors->data()[index].height =
-                assignFloatFromBytes(data + 4 + i, 3);
+                assignFloatFromBytes(data + 6 + i, 5);
             context->cursors->data()[index].show = 1;
         }
-		context->mutex_cursors.unlock();
-
+        context->mutex_cursors.unlock();
     }
+}
+
+void handlerSetOwnPid(MessageContext *context,
+                      MessageId id,
+                      uint8_t *data,
+                      uint8_t length)
+{
+    context->player_id = data[0];
+    printf("My pid %u\n", context->player_id);
 }
 
 void initMessageHandler(MessageContext *context)
@@ -193,4 +202,5 @@ void initMessageHandler(MessageContext *context)
     handler_table[MSG_ADDBOX] = handlerAddBox;
     handler_table[MSG_CURSOR_LIST] = handlerCursorList;
     handler_table[MSG_REMBOX] = handlerRemoveBox;
+    handler_table[MSG_SET_YOUR_PID] = handlerSetOwnPid;
 }

@@ -98,8 +98,6 @@ class Application : public EventCallbacks
     Cube ball;
     MessageContext *msg_context;
 
-    std::vector<vec3> color_list;
-
     float temporary_cursor;
 
     int arm_l, arm_r;
@@ -156,85 +154,10 @@ class Application : public EventCallbacks
             msg_context->mutex_boxes.lock();
             for (int i = 0; i < cubes.elements.size(); i++)
             {
-                cubes.elements.data()[i].beShot(i);
+                cubes.elements.data()[i].beShot(i,msg_context->player_id, &msg_context->color_list);
             }
             msg_context->mutex_boxes.unlock();
         }
-    }
-
-    vec3 hsv(vec3 in)
-    {
-        double hh, p, q, t, ff;
-        long i;
-        vec3 out;
-
-        if (in.s <= 0.0)
-        {  // < is bogus, just shuts up warnings
-            out.r = in.z;
-            out.g = in.z;
-            out.b = in.z;
-            return out;
-        }
-        hh = in.x;
-        if (hh >= 360.0) hh = 0.0;
-        hh /= 60.0;
-        i = (long)hh;
-        ff = hh - i;
-        p = in.z * (1.0 - in.y);
-        q = in.z * (1.0 - (in.y * ff));
-        t = in.z * (1.0 - (in.y * (1.0 - ff)));
-
-        switch (i)
-        {
-            case 0:
-                out.r = in.z;
-                out.g = t;
-                out.b = p;
-                break;
-            case 1:
-                out.r = q;
-                out.g = in.z;
-                out.b = p;
-                break;
-            case 2:
-                out.r = p;
-                out.g = in.z;
-                out.b = t;
-                break;
-
-            case 3:
-                out.r = p;
-                out.g = q;
-                out.b = in.z;
-                break;
-            case 4:
-                out.r = t;
-                out.g = p;
-                out.b = in.z;
-                break;
-            case 5:
-            default:
-                out.r = in.z;
-                out.g = p;
-                out.b = q;
-                break;
-        }
-        return out;
-    }
-
-    vec3 hsv(float h, float s, float v) { return hsv(vec3(h, s, v)); }
-
-    void init_color_list()
-    {
-        for (int i = 0; i < 25; i++)
-        {
-            vec3 clr = hsv(fmod(i * 0.618033988749895, 1.0), 0.5,
-                           sqrt(1.0 - fmod(i * 0.618033988749895, 0.5)));
-            color_list.push_back(clr
-              );
-            printf("%3.3f, %3.3f, %3.3f\n", clr.x, clr.y, clr.z);
-        }
-        
     }
 
     // callback for the mouse when clicked move the triangle when helper
@@ -517,12 +440,13 @@ class Application : public EventCallbacks
             map(xpos, 0, width, sin(-PI_CONST * 0.25), sin(PI_CONST * 0.25));
         angle = asin(-angle);
         angle -= fmod(mycam.rot.y, 2 * PI_CONST);
+        // angle -= mycam.rot.y;
         angle += PI_CONST;
         float vangle = map(-ypos, -height, 0, 0, 1);
 
-        assignBytesFromFloat(tmpWriteBuf, angle, 3);
-        assignBytesFromFloat(tmpWriteBuf + 3, vangle, 3);
-        clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 6);
+        assignBytesFromFloat(tmpWriteBuf, angle, 5);
+        assignBytesFromFloat(tmpWriteBuf + 5, vangle, 5);
+        clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 10);
 
         CylCoords myCursor;
         myCursor.angle = angle;
@@ -551,21 +475,36 @@ class Application : public EventCallbacks
         ball.interp += 3 * frametime;
         ball.interpBetween();
 
-        myCursor.calc_result();
-        M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
-        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
+        if (msg_context->player_id >= 0)
+        {
+            myCursor.calc_result();
+            M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
+            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+            vec3 clr = msg_context->color_list.get_color(msg_context->player_id);
+            glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
+        }
 
         msg_context->mutex_cursors.lock();
         for (int i = 0; i < cursors.size(); i++)
         {
             if (cursors.data()[i].show)
             {
+                /* printf("%3.3f %3.3f \n", myCursor.angle,
+                        cursors.data()[i].angle);*/
+
+                if (msg_context->player_id == i) continue;
+
                 cursors.data()[i].calc_result();
                 M = cursors.data()[i].result.calc_scale(
                     cursors.data()[i].result.calc_no_scale());
+                vec3 clr = msg_context->color_list.get_color(i);
                 glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
                                    &M[0][0]);
+
+                glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y,
+                            clr.z);
+
                 glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
             }
         }
@@ -591,19 +530,19 @@ class Application : public EventCallbacks
                 if (!cube->hit &&
                     distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
                 {
-                    cube->beShot(i);
+                    cube->beShot(i, msg_context->player_id, &msg_context->color_list	);
                 }
                 if (cube->hit && cube->interp > 1)
                 {
                     cube->show = 0;
                 }
                 if (cube->hit)
-                    glUniform3f(prog->getUniform("bonuscolor"), 0, 0, 1);
+                {
+                    glUniform3f(prog->getUniform("bonuscolor"), cube->bonuscolor.r, cube->bonuscolor.g, cube->bonuscolor.b);
+                }
                 else
                 {
-                    vec3 clr = color_list.at(i % color_list.size());
-                    glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y,
-                                clr.z);
+                    glUniform3f(prog->getUniform("bonuscolor"), 1, 1, 1);
                 }
 
                 cube->drawElement(prog, cubes.elements, mat4(1));
@@ -652,7 +591,6 @@ int main(int argc, char **argv)
             may need to initialize or set up different data and state */
     // Initialize scene.
     application->init(resourceDir);
-    application->init_color_list();
     application->initGeom();
     application->initCubeModel();
 
@@ -660,7 +598,8 @@ int main(int argc, char **argv)
                      GLFW_CURSOR_HIDDEN);
 
     MessageContext context;
-
+    context.color_list = ColorList();
+    context.player_id = -1;
     application->msg_context = &context;
     context.boxes = &application->cubes.elements;
 
@@ -679,7 +618,7 @@ int main(int argc, char **argv)
 
     bool keepReading = 1;
     std::thread readThread = std::thread(repeatedRead);
-   // std::thread flushThread = std::thread(repeatedWrite);
+    // std::thread flushThread = std::thread(repeatedWrite);
 
     // Loop until the user closes the window.
     while (!glfwWindowShouldClose(windowManager->getHandle()))
@@ -700,9 +639,9 @@ int main(int argc, char **argv)
         count = (count + 1) & 0xF;*/
     }
     stopRepeatedRead();
-    //stopRepeatedWrite();
+    // stopRepeatedWrite();
     readThread.join();
-   // flushThread.join();
+    // flushThread.join();
 
     // Quit program.
     windowManager->shutdown();

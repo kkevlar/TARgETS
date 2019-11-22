@@ -7,8 +7,8 @@
 #include <memory>
 #include <vector>
 #include "GLSL.h"
-#include "program.h"
 #include "message.h"
+#include "program.h"
 #include "webclient.h"
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
@@ -97,18 +97,20 @@ void Cube::init(int x, int y, int z, glm::vec3 centeroffset)
 
 static uint8_t tmpWriteBuf[256];
 
-void Cube::beShot(int myIndex)
+void Cube::beShot(int myIndex, uint8_t player_id, ColorList* colors)
 {
     hit = 1;
-    source =postInterp;
+    source = postInterp;
     target = source;
     target.scale *= 0.25f;
     target.rot.y = 8 * PI_CONST;
     phase = 0.1;
     dosin = 0;
+    bonuscolor = colors->get_color(player_id);
     resetInterp();
-    assignBytesFromNum(tmpWriteBuf, myIndex, 2);
-    clientMsgWrite(MSG_REMBOX, tmpWriteBuf, 2);
+    tmpWriteBuf[0] = player_id;
+    assignBytesFromNum(tmpWriteBuf + 1, myIndex, 2);
+    clientMsgWrite(MSG_REMBOX, tmpWriteBuf, 3);
 }
 
 Cube::Cube() { init(0, 0, 0, glm::vec3(0, 0, 0)); }
@@ -195,4 +197,97 @@ void CubeModel::draw(std::shared_ptr<Program> prog)
     {
         elements.at(i).drawElement(prog, elements, M);
     }
+}
+
+vec3 hsv(vec3 in)
+{
+    double hh, p, q, t, ff;
+    long i;
+    vec3 out;
+
+    if (in.s <= 0.0)
+    {  // < is bogus, just shuts up warnings
+        out.r = in.z;
+        out.g = in.z;
+        out.b = in.z;
+        return out;
+    }
+    hh = in.x;
+    if (hh >= 360.0) hh = 0.0;
+    hh /= 60.0;
+    i = (long)hh;
+    ff = hh - i;
+    p = in.z * (1.0 - in.y);
+    q = in.z * (1.0 - (in.y * ff));
+    t = in.z * (1.0 - (in.y * (1.0 - ff)));
+
+    switch (i)
+    {
+        case 0:
+            out.r = in.z;
+            out.g = t;
+            out.b = p;
+            break;
+        case 1:
+            out.r = q;
+            out.g = in.z;
+            out.b = p;
+            break;
+        case 2:
+            out.r = p;
+            out.g = in.z;
+            out.b = t;
+            break;
+
+        case 3:
+            out.r = p;
+            out.g = q;
+            out.b = in.z;
+            break;
+        case 4:
+            out.r = t;
+            out.g = p;
+            out.b = in.z;
+            break;
+        case 5:
+        default:
+            out.r = in.z;
+            out.g = p;
+            out.b = q;
+            break;
+    }
+    return out;
+}
+
+vec3 hsv(float h, float s, float v) { return hsv(vec3(h, s, v)); }
+
+ColorList::ColorList() 
+{
+    color_list = std::vector<glm::vec3>();
+
+    color_list.push_back(vec3(1, 0, 0));
+    color_list.push_back(vec3(0, 0, 1));
+    color_list.push_back(vec3(0, 0.85, 0));
+    color_list.push_back(vec3(1, 1, 0));
+    color_list.push_back(vec3(0, 1, 1));
+    color_list.push_back(vec3(1, 0, 1));
+    color_list.push_back(vec3(0.6, 0, 0.9));
+    color_list.push_back(vec3(0, 0.5, 0));
+    color_list.push_back(vec3(0.9, 0.6, 0));
+
+    while (color_list.size() < 150)
+    {
+        vec3 clr =
+            hsv(fmod(color_list.size() * 0.618033988749895, 1.0) * 360.0f, 0.4,
+                sqrt(1.0 -
+                     fmod(color_list.size() * 0.618033988749895 * 0.25, 0.75)));
+        color_list.push_back(clr);
+    }
+}
+
+glm::vec3 ColorList::get_color(int i)
+{
+    if (i < 0 || color_list.size() <= i) return vec3(1, 1, 1);	
+
+    return color_list.at(i);
 }
