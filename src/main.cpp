@@ -98,6 +98,8 @@ class Application : public EventCallbacks
     Cube ball;
     MessageContext *msg_context;
 
+    std::vector<vec3> color_list;
+
     float temporary_cursor;
 
     int arm_l, arm_r;
@@ -158,6 +160,81 @@ class Application : public EventCallbacks
             }
             msg_context->mutex_boxes.unlock();
         }
+    }
+
+    vec3 hsv(vec3 in)
+    {
+        double hh, p, q, t, ff;
+        long i;
+        vec3 out;
+
+        if (in.s <= 0.0)
+        {  // < is bogus, just shuts up warnings
+            out.r = in.z;
+            out.g = in.z;
+            out.b = in.z;
+            return out;
+        }
+        hh = in.x;
+        if (hh >= 360.0) hh = 0.0;
+        hh /= 60.0;
+        i = (long)hh;
+        ff = hh - i;
+        p = in.z * (1.0 - in.y);
+        q = in.z * (1.0 - (in.y * ff));
+        t = in.z * (1.0 - (in.y * (1.0 - ff)));
+
+        switch (i)
+        {
+            case 0:
+                out.r = in.z;
+                out.g = t;
+                out.b = p;
+                break;
+            case 1:
+                out.r = q;
+                out.g = in.z;
+                out.b = p;
+                break;
+            case 2:
+                out.r = p;
+                out.g = in.z;
+                out.b = t;
+                break;
+
+            case 3:
+                out.r = p;
+                out.g = q;
+                out.b = in.z;
+                break;
+            case 4:
+                out.r = t;
+                out.g = p;
+                out.b = in.z;
+                break;
+            case 5:
+            default:
+                out.r = in.z;
+                out.g = p;
+                out.b = q;
+                break;
+        }
+        return out;
+    }
+
+    vec3 hsv(float h, float s, float v) { return hsv(vec3(h, s, v)); }
+
+    void init_color_list()
+    {
+        for (int i = 0; i < 25; i++)
+        {
+            vec3 clr = hsv(fmod(i * 0.618033988749895, 1.0), 0.5,
+                           sqrt(1.0 - fmod(i * 0.618033988749895, 0.5)));
+            color_list.push_back(clr
+              );
+            printf("%3.3f, %3.3f, %3.3f\n", clr.x, clr.y, clr.z);
+        }
+        
     }
 
     // callback for the mouse when clicked move the triangle when helper
@@ -523,7 +600,11 @@ class Application : public EventCallbacks
                 if (cube->hit)
                     glUniform3f(prog->getUniform("bonuscolor"), 0, 0, 1);
                 else
-                    glUniform3f(prog->getUniform("bonuscolor"), 0, 0, 0);
+                {
+                    vec3 clr = color_list.at(i % color_list.size());
+                    glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y,
+                                clr.z);
+                }
 
                 cube->drawElement(prog, cubes.elements, mat4(1));
             }
@@ -571,6 +652,7 @@ int main(int argc, char **argv)
             may need to initialize or set up different data and state */
     // Initialize scene.
     application->init(resourceDir);
+    application->init_color_list();
     application->initGeom();
     application->initCubeModel();
 
