@@ -10,3 +10,9 @@ void clientMsgWrite(MessageId code, uint8_t* data, int len);
 void clientwrite(uint8_t* bytes, int length);
 void clientflush();
 void clientend();
+
+void stopRepeatedRead();
+void repeatedRead();
+
+void stopRepeatedWrite();
+void repeatedWrite();

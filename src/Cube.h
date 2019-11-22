@@ -51,6 +51,7 @@ public:
 	void drawElement(std::shared_ptr<Program> prog, std::vector<Cube> &elements, glm::mat4 parentM);
 	void interpBetween();
 	void resetInterp();
+    void beShot(int myIndex);
 
 private:
 	glm::mat4 cached_no_scale;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 #include <stdint.h>
 #include "Cube.h"
 
@@ -24,7 +25,9 @@ typedef uint8_t MessageId;
 typedef struct MessageContext
 {
 	std::vector<Cube>* boxes;
+	std::mutex mutex_boxes;
 	std::vector<CylCoords>* cursors;
+	std::mutex mutex_cursors;
 } MessageContext;
 
 void assignBytesFromNum(uint8_t* buf, int num, int bytes);
