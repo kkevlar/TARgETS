@@ -88,7 +88,7 @@ void handlerAddBox(MessageContext *context,
     pos.x = 25 * sin(angle);
     pos.z = 25 * cos(angle);
 
-    Cube cube = Cube();
+    Target cube = Target();
     cube.show = 1;
     cube.hit = 0;
     cube.dosin = 1;
@@ -119,7 +119,7 @@ void handlerRemoveBox(MessageContext *context,
     uint32_t iindex = assignNumFromBytes(data + 1, 2);
 
     bool error = 0;
-    Cube cube;
+    Target cube;
 
     context->mutex_boxes.lock();
     if (iindex >= context->boxes->size())

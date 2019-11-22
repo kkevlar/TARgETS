@@ -27,6 +27,7 @@
     <ClCompile Include="Shape.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="message.cpp" />
+    <ClCompile Include="Shoot.cpp" />
     <ClCompile Include="webclient.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
@@ -37,6 +38,7 @@
     <ClInclude Include="message.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Shape.h" />
+    <ClInclude Include="Shoot.h" />
     <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="webclient.h" />
     <ClInclude Include="WindowManager.h" />

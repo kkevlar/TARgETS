@@ -24,7 +24,7 @@ typedef uint8_t MessageId;
 
 typedef struct MessageContext
 {
-	std::vector<Cube>* boxes;
+	std::vector<Target>* boxes;
 	std::mutex mutex_boxes;
 	std::vector<CylCoords>* cursors;
 	std::mutex mutex_cursors;

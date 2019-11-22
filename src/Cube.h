@@ -16,7 +16,6 @@ class ColorList
     ColorList();
 };
 
-
 class MatrixIngridients
 {
    public:
@@ -40,49 +39,55 @@ class CylCoords
     void calc_result();
 };
 
-class Cube
+class InterpObject
 {
    public:
     MatrixIngridients target;
     MatrixIngridients source;
     MatrixIngridients postInterp;
-
     int parent;
     float phase;
     float interp;
-    bool show;
-    bool hit;
+    bool show;    
     bool dosin;
     glm::vec3 bonuscolor;
-    Cube();
-    Cube(int x, int y, int z, glm::vec3 centeroffset);
-    Cube(int x, int y, int z, glm::vec3 centeroffset, int cubesSize);
+    InterpObject();
+    InterpObject(int x, int y, int z, glm::vec3 centeroffset);
+    InterpObject(int x, int y, int z, glm::vec3 centeroffset, int cubesSize);
     void sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM);
-    void sendModelMatrix(std::shared_ptr<Program> prog,
-                         std::vector<Cube>& elements,
-                         glm::mat4 parentM);
-    void drawElement(std::shared_ptr<Program> prog,
-                     std::vector<Cube>& elements,
-                     glm::mat4 parentM);
+    
+    
     void interpBetween();
     void resetInterp();
-    void beShot(int myIndex, uint8_t player_id, ColorList* colors);
+    
 
-   private:
+   protected:
     glm::mat4 cached_no_scale;
     void init(int x, int y, int z, glm::vec3 centeroffset);
 };
 
-class CubeModel
+class Target : public InterpObject
 {
    public:
-    std::vector<Cube> elements;
+    bool hit;
+    void beShot(int myIndex, uint8_t player_id, ColorList* colors);
+    void drawTarget(std::shared_ptr<Program> prog,
+                     std::vector<Target>& elements,
+                     glm::mat4 parentM);
+    void sendModelMatrix(std::shared_ptr<Program> prog,
+                         std::vector<Target>& elements,
+                         glm::mat4 parentM);
+};
+
+class TargetManager
+{
+   public:
+    std::vector<Target> elements;
 
     int snowman_index;
     int pickaxe_index;
 
-    CubeModel();
+    TargetManager();
 
     void draw(std::shared_ptr<Program> prog);
 };
-

@@ -23,6 +23,7 @@ using namespace glm;
 using namespace std;
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
+#define PLAYER_CURSOR_COUNT 256
 
 static uint8_t tmpWriteBuf[256];
 
@@ -95,16 +96,16 @@ class Application : public EventCallbacks
         CylinderBufferIndeciesID;
 
     Shape shape;
-    Cube ball;
+    InterpObject ball;
     MessageContext *msg_context;
 
     float temporary_cursor;
 
     int arm_l, arm_r;
-    std::vector<Cube> cylinders;
+    std::vector<Target> cylinders;
     std::vector<CylCoords> cursors;
 
-    CubeModel cubes;
+    TargetManager cubes;
     int cubesSize = 5;
 
     void keyCallback(
@@ -197,7 +198,7 @@ class Application : public EventCallbacks
 
         for (int i = 0; i < 0x80; i++)
         {
-            Cube cube = Cube();
+            Target cube = Target();
             cube.show = 0;
             cubes.elements.push_back(cube);
         }
@@ -513,7 +514,7 @@ class Application : public EventCallbacks
         msg_context->mutex_boxes.lock();
         for (int i = 0; i <= cubes.elements.size(); i++)
         {
-            Cube *cube = &cubes.elements.data()[i];
+            Target *cube = &cubes.elements.data()[i];
             if (cube->show || i == 0)
             {
                 if (!cube->hit)
@@ -527,7 +528,7 @@ class Application : public EventCallbacks
                     cube->interpBetween();
                 }
 
-                if (!cube->hit &&
+                if (!cube->hit && ball.show &&
                     distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
                 {
                     cube->beShot(i, msg_context->player_id, &msg_context->color_list	);
@@ -545,7 +546,7 @@ class Application : public EventCallbacks
                     glUniform3f(prog->getUniform("bonuscolor"), 1, 1, 1);
                 }
 
-                cube->drawElement(prog, cubes.elements, mat4(1));
+                cube->drawTarget(prog, cubes.elements, mat4(1));
             }
         }
         msg_context->mutex_boxes.unlock();
@@ -604,7 +605,7 @@ int main(int argc, char **argv)
     context.boxes = &application->cubes.elements;
 
     application->cursors = std::vector<CylCoords>();
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < PLAYER_CURSOR_COUNT; i++)
     {
         CylCoords c;
         c.show = 0;

@@ -78,7 +78,7 @@ void CylCoords::calc_result()
     result.rot.x = map(-height, -1, 0, -1, 1);
 }
 
-void Cube::init(int x, int y, int z, glm::vec3 centeroffset)
+void InterpObject::init(int x, int y, int z, glm::vec3 centeroffset)
 {
     cached_no_scale = glm::mat4(1);
     parent = -1;
@@ -97,7 +97,7 @@ void Cube::init(int x, int y, int z, glm::vec3 centeroffset)
 
 static uint8_t tmpWriteBuf[256];
 
-void Cube::beShot(int myIndex, uint8_t player_id, ColorList* colors)
+void Target::beShot(int myIndex, uint8_t player_id, ColorList* colors)
 {
     hit = 1;
     source = postInterp;
@@ -113,14 +113,14 @@ void Cube::beShot(int myIndex, uint8_t player_id, ColorList* colors)
     clientMsgWrite(MSG_REMBOX, tmpWriteBuf, 3);
 }
 
-Cube::Cube() { init(0, 0, 0, glm::vec3(0, 0, 0)); }
+InterpObject::InterpObject() { init(0, 0, 0, glm::vec3(0, 0, 0)); }
 
-Cube::Cube(int x, int y, int z, glm::vec3 centeroffset)
+InterpObject::InterpObject(int x, int y, int z, glm::vec3 centeroffset)
 {
     init(x, y, z, centeroffset);
 }
 
-Cube::Cube(int x, int y, int z, vec3 centeroffset, int cubesSize)
+InterpObject::InterpObject(int x, int y, int z, vec3 centeroffset, int cubesSize)
 {
     init(x, y, z, centeroffset);
     phase = map(
@@ -129,8 +129,8 @@ Cube::Cube(int x, int y, int z, vec3 centeroffset, int cubesSize)
     interp = phase;
 }
 
-void Cube::sendModelMatrix(std::shared_ptr<Program> prog,
-                           std::vector<Cube> &elements,
+void Target::sendModelMatrix(std::shared_ptr<Program> prog,
+                           std::vector<Target> &elements,
                            glm::mat4 parentM)
 {
     cached_no_scale = postInterp.calc_no_scale();
@@ -146,7 +146,7 @@ void Cube::sendModelMatrix(std::shared_ptr<Program> prog,
     glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 }
 
-void Cube::sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM)
+void InterpObject::sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM)
 {
     cached_no_scale = postInterp.calc_no_scale();
 
@@ -155,15 +155,15 @@ void Cube::sendModelMatrix(std::shared_ptr<Program> prog, glm::mat4 parentM)
     glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 }
 
-void Cube::drawElement(std::shared_ptr<Program> prog,
-                       std::vector<Cube> &elements,
+void Target::drawTarget(std::shared_ptr<Program> prog,
+                       std::vector<Target> &elements,
                        glm::mat4 parentM)
 {
     sendModelMatrix(prog, elements, parentM);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
 }
 
-void Cube::interpBetween()
+void InterpObject::interpBetween()
 {
     float z;
 
@@ -181,21 +181,21 @@ void Cube::interpBetween()
     postInterp.self_interpolate_between(target, source, z);
 }
 
-void Cube::resetInterp() { interp = phase; }
+void InterpObject::resetInterp() { interp = phase; }
 
-CubeModel::CubeModel()
+TargetManager::TargetManager()
 {
-    // values = MatrixIngridients();
-    elements = std::vector<Cube>();
+    //values = MatrixIngridients();
+    elements = std::vector<Target>();
 }
 
-void CubeModel::draw(std::shared_ptr<Program> prog)
+void TargetManager::draw(std::shared_ptr<Program> prog)
 {
     glm::mat4 M = glm::mat4(1);
 
     for (int i = 0; i < elements.size(); i++)
     {
-        elements.at(i).drawElement(prog, elements, M);
+        elements.at(i).drawTarget(prog, elements, M);
     }
 }
 
@@ -206,7 +206,7 @@ vec3 hsv(vec3 in)
     vec3 out;
 
     if (in.s <= 0.0)
-    {  // < is bogus, just shuts up warnings
+    {
         out.r = in.z;
         out.g = in.z;
         out.b = in.z;
