@@ -597,7 +597,7 @@ int main(int argc, char **argv)
 
     bool keepReading = 1;
     std::thread readThread = std::thread(repeatedRead);
-    std::thread flushThread = std::thread(repeatedWrite);
+   // std::thread flushThread = std::thread(repeatedWrite);
 
     // Loop until the user closes the window.
     while (!glfwWindowShouldClose(windowManager->getHandle()))
@@ -610,17 +610,17 @@ int main(int argc, char **argv)
         // Poll for and process events.
         glfwPollEvents();
 
-        if (count == 0)
+        /*if (count == 0)
         {
             clientflush();
         }
 
-        count = (count + 1) & 0xF;
+        count = (count + 1) & 0xF;*/
     }
     stopRepeatedRead();
-    stopRepeatedWrite();
+    //stopRepeatedWrite();
     readThread.join();
-    flushThread.join();
+   // flushThread.join();
 
     // Quit program.
     windowManager->shutdown();

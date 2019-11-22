@@ -202,6 +202,7 @@ void repeatedRead()
     while (keepReading)
     {
         clientread();
+		 clientflush();
     }
 }
 

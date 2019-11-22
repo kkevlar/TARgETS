@@ -3,19 +3,23 @@
 #include "message.h"
 #include <stdio.h>
 
-static void (*handler_table[0x100])(MessageContext *, uint8_t *, int);
+static void (*handler_table[0x100])(MessageContext *, MessageId id, uint8_t *, uint8_t);
 static MessageContext *mycontext;
 
 void handleMessage(MessageId id, uint8_t *message, int length)
 {
-    (*handler_table[id])(mycontext, message, length);
+    (*handler_table[id])(mycontext, id, message, length);
 }
 
-void handlerDefault(MessageContext *context, uint8_t *data, int length)
+void handlerDefault(MessageContext *context,
+                    MessageId id,
+                    uint8_t *data,
+                    uint8_t length)
 {
     fprintf(
         stderr,
-        "Ignoring message of %d bytes: this message type is unimplemented\n",
+        "Ignoring message (id=%4u) of %4u bytes: this message type is unimplemented\n",
+		id,
         length);
 }
 
@@ -64,7 +68,10 @@ float assignFloatFromBytes(uint8_t *buf, int bytes)
     return f;
 }
 
-void handlerAddBox(MessageContext *context, uint8_t *data, int length)
+void handlerAddBox(MessageContext *context,
+                   MessageId id,
+                   uint8_t *data,
+                   uint8_t length)
 {
     if (length != 6) return;
 
@@ -101,7 +108,10 @@ void handlerAddBox(MessageContext *context, uint8_t *data, int length)
     context->mutex_boxes.unlock();
 }
 
-void handlerRemoveBox(MessageContext *context, uint8_t *data, int length)
+void handlerRemoveBox(MessageContext *context,
+                      MessageId id,
+                      uint8_t *data,
+                      uint8_t length)
 {
     if (length < 2) return;
 
@@ -142,7 +152,10 @@ void handlerRemoveBox(MessageContext *context, uint8_t *data, int length)
     context->mutex_boxes.unlock();
 }
 
-void handlerCursorList(MessageContext *context, uint8_t *data, int length)
+void handlerCursorList(MessageContext *context,
+                       MessageId id,
+                       uint8_t *data,
+                       uint8_t length)
 {
     if (length % 7 != 0)
     {
