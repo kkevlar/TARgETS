@@ -14,6 +14,7 @@
     <ClCompile Include="message.cpp" />
     <ClCompile Include="webclient.cpp" />
     <ClCompile Include="Shoot.cpp" />
+    <ClCompile Include="Collision.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Program.h" />
@@ -26,6 +27,7 @@
     <ClInclude Include="message.h" />
     <ClInclude Include="webclient.h" />
     <ClInclude Include="Shoot.h" />
+    <ClInclude Include="Collision.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">

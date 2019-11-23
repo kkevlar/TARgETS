@@ -16,6 +16,7 @@ ZJ Wood CPE 471 Lab 3 base code
 
 #include "Shape.h"
 #include "Shoot.h"
+#include "Collision.h"
 #include "WindowManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -98,6 +99,7 @@ class Application : public EventCallbacks
 
     Shape shape;
     MessageContext *msg_context;
+    CollisionHandler collision;
 
     float temporary_cursor;
 
