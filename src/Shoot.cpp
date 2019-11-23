@@ -4,7 +4,7 @@
 
 #define MAX_SHOTS_PER_PLAYER 64
 
-ShotManager::ShotManager(int players, uint8_t my_player_id)
+ShotManager::ShotManager(int players)
 {
     shots = std::vector<Shot>();
     for (int i = 0; i < players; i++)
@@ -13,11 +13,45 @@ ShotManager::ShotManager(int players, uint8_t my_player_id)
         {
             Shot s;
             s.playerId = i;
-            if (i == my_player_id) s.mine = true;
-            s.cube = InterpObject();
-            s.cube.show = 0;
-            s.cube.dosin = 0;
+            s.obj = InterpObject();
+            s.obj.show = 0;
+            s.obj.dosin = 0;
             shots.push_back(s);
         }
     }
+}
+
+int ShotManager::selfIndexCalc(int index, int myPlayerId)
+{
+    if (index >= MAX_SHOTS_PER_PLAYER)
+    {
+        fprintf(stderr, "ShotManager client asked for a bad index\n");
+        return -1;
+    }
+
+    int baseindex = ((int)myPlayerId) * MAX_SHOTS_PER_PLAYER;
+    index += baseindex;
+    if (index >= shots.size())
+    {
+        fprintf(stderr,
+                "ShotManager has an internal list error (getMyShotAtIndex)\n");
+        return -1;
+    }
+
+    return index;
+}
+
+Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
+{
+    index = selfIndexCalc(index, myPlayerId);
+    if (index < 0)
+        return Shot();
+    else
+        return shots.at(index);
+}
+
+void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
+{
+    index = selfIndexCalc(index, myPlayerId);
+    if (index >= 0) shots.data()[index] = shot;
 }

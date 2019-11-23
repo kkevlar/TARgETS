@@ -15,6 +15,7 @@ ZJ Wood CPE 471 Lab 3 base code
 #include "webclient.h"
 
 #include "Shape.h"
+#include "Shoot.h"
 #include "WindowManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -96,7 +97,6 @@ class Application : public EventCallbacks
         CylinderBufferIndeciesID;
 
     Shape shape;
-    InterpObject ball;
     MessageContext *msg_context;
 
     float temporary_cursor;
@@ -105,6 +105,7 @@ class Application : public EventCallbacks
     std::vector<Target> cylinders;
     std::vector<CylCoords> cursors;
 
+    ShotManager shots = ShotManager(PLAYER_CURSOR_COUNT);
     TargetManager cubes;
     int cubesSize = 5;
 
@@ -155,7 +156,8 @@ class Application : public EventCallbacks
             msg_context->mutex_boxes.lock();
             for (int i = 0; i < cubes.elements.size(); i++)
             {
-                cubes.elements.data()[i].beShot(i,msg_context->player_id, &msg_context->color_list);
+                cubes.elements.data()[i].beShot(i, msg_context->player_id,
+                                                &msg_context->color_list);
             }
             msg_context->mutex_boxes.unlock();
         }
@@ -192,10 +194,8 @@ class Application : public EventCallbacks
         return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
     }
 
-    void initCubeModel()
+    void initTargetManager()
     {
-        ball.show = 0;
-
         for (int i = 0; i < 0x80; i++)
         {
             Target cube = Target();
@@ -454,34 +454,44 @@ class Application : public EventCallbacks
         myCursor.height = vangle;
         myCursor.calc_result();
 
+        Shot ball ;
+        if (msg_context->player_id >= 0)
+            ball = shots.getMyShotAtIndex(0, msg_context->player_id);
+        else
+            ball = Shot();
+
         if (md)
         {
-            ball.source.scale = vec3(4, 4, 4);
-            ball.source.pos = vec3(0, -8, 0);
-            ball.source.rot = vec3(0, 0, 0);
-            ball.target = ball.source;
+            ball.obj.source.scale = vec3(4, 4, 4);
+            ball.obj.source.pos = vec3(0, -8, 0);
+            ball.obj.source.rot = vec3(0, 0, 0);
+            ball.obj.target = ball.obj.source;
 
-            ball.target.pos = myCursor.result.pos;
-            ball.target.scale = vec3(0.1, 0.1, 0.1);
-            ball.phase = 0;
-            ball.show = 1;
-            ball.resetInterp();
+            ball.obj.target.pos = myCursor.result.pos;
+            ball.obj.target.scale = vec3(0.1, 0.1, 0.1);
+            ball.obj.phase = 0;
+            ball.obj.show = 1;
+            ball.obj.resetInterp();
         }
 
-        if (ball.interp > 1)
+        if (ball.obj.interp > 1)
         {
-            ball.show = 0;
+            ball.obj.show = 0;
         }
 
-        ball.interp += 3 * frametime;
-        ball.interpBetween();
+        ball.obj.interp += 3 * frametime;
+        ball.obj.interpBetween();
+
+        if (msg_context->player_id >= 0)
+            shots.setMyShotAtIndex(ball, 0, msg_context->player_id);
 
         if (msg_context->player_id >= 0)
         {
             myCursor.calc_result();
             M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
             glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-            vec3 clr = msg_context->color_list.get_color(msg_context->player_id);
+            vec3 clr =
+                msg_context->color_list.get_color(msg_context->player_id);
             glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
         }
@@ -528,10 +538,11 @@ class Application : public EventCallbacks
                     cube->interpBetween();
                 }
 
-                if (!cube->hit && ball.show &&
-                    distance(ball.postInterp.pos, cube->postInterp.pos) < 1)
+                if (!cube->hit && ball.obj.show &&
+                    distance(ball.obj.postInterp.pos, cube->postInterp.pos) < 1)
                 {
-                    cube->beShot(i, msg_context->player_id, &msg_context->color_list	);
+                    cube->beShot(i, msg_context->player_id,
+                                 &msg_context->color_list);
                 }
                 if (cube->hit && cube->interp > 1)
                 {
@@ -539,7 +550,9 @@ class Application : public EventCallbacks
                 }
                 if (cube->hit)
                 {
-                    glUniform3f(prog->getUniform("bonuscolor"), cube->bonuscolor.r, cube->bonuscolor.g, cube->bonuscolor.b);
+                    glUniform3f(prog->getUniform("bonuscolor"),
+                                cube->bonuscolor.r, cube->bonuscolor.g,
+                                cube->bonuscolor.b);
                 }
                 else
                 {
@@ -554,15 +567,18 @@ class Application : public EventCallbacks
         glBindVertexArray(0);
         prog->unbind();
 
-        if (ball.show)
+        if (ball.obj.show)
         {
             shapeprog->bind();
 
+			vec3 clr =
+                msg_context->color_list.get_color(msg_context->player_id);
+            glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
             glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
             glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
             glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
-            ball.sendModelMatrix(shapeprog, glm::mat4(1));
+            ball.obj.sendModelMatrix(shapeprog, glm::mat4(1));
             shape.draw(shapeprog);
 
             shapeprog->unbind();
@@ -593,7 +609,9 @@ int main(int argc, char **argv)
     // Initialize scene.
     application->init(resourceDir);
     application->initGeom();
-    application->initCubeModel();
+    application->initTargetManager();
+
+    
 
     glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR,
                      GLFW_CURSOR_HIDDEN);

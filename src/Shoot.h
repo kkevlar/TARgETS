@@ -10,16 +10,19 @@
 class Shot
 {
    public:
-    bool mine;
+    //bool mine;
     int playerId;
-    InterpObject cube;
+    InterpObject obj;
 };
 
 class ShotManager
 {
    private:
     std::vector<Shot> shots;
+    int selfIndexCalc(int index, int myPlayerId);
    public:
-    ShotManager(int max_player_count, uint8_t my_player_id);
+    ShotManager(int max_player_count);
+    Shot getMyShotAtIndex(int index, int myPlayerId);
+    void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
 
 };
