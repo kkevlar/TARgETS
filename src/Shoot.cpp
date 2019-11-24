@@ -53,5 +53,6 @@ Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
 void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
 {
     index = selfIndexCalc(index, myPlayerId);
+
     if (index >= 0) shots.data()[index] = shot;
 }

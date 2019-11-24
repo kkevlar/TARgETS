@@ -109,7 +109,6 @@ class Application : public EventCallbacks
 
     ShotManager shots = ShotManager(PLAYER_CURSOR_COUNT);
     TargetManager cubes;
-    int cubesSize = 5;
 
     void keyCallback(
         GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -461,6 +460,7 @@ class Application : public EventCallbacks
             ball = shots.getMyShotAtIndex(0, msg_context->player_id);
         else
             ball = Shot();
+			   
 
         if (md)
         {
@@ -476,16 +476,28 @@ class Application : public EventCallbacks
             ball.obj.resetInterp();
         }
 
-        if (ball.obj.interp > 1)
-        {
-            ball.obj.show = 0;
-        }
+        
 
         ball.obj.interp += 3 * frametime;
         ball.obj.interpBetween();
 
+		if (ball.obj.show && ball.obj.interp > 0.99)
+        {
+            ball.obj.show = 0;
+        }
+
+		//ball.obj.show = 0;
+		std::vector<Shot> shotList = std::vector<Shot>();
+        if (ball.obj.show)
+        shotList.push_back(ball);
+        collision.prepTableWithShots(shotList, COLLISION_RADIUS, 0,
+                                     shotList.size());
+
+
         if (msg_context->player_id >= 0)
+        {
             shots.setMyShotAtIndex(ball, 0, msg_context->player_id);
+        }
 
         if (msg_context->player_id >= 0)
         {
@@ -527,7 +539,7 @@ class Application : public EventCallbacks
         for (int i = 0; i <= cubes.elements.size(); i++)
         {
             Target *cube = &cubes.elements.data()[i];
-            if (cube->show || i == 0)
+            if (cube->show)
             {
                 if (!cube->hit)
                 {
@@ -540,8 +552,7 @@ class Application : public EventCallbacks
                     cube->interpBetween();
                 }
 
-                if (!cube->hit && ball.obj.show &&
-                    distance(ball.obj.postInterp.pos, cube->postInterp.pos) < 1)
+                if (!cube->hit && collision.testCollision(cube->postInterp.pos, COLLISION_RADIUS))
                 {
                     cube->beShot(i, msg_context->player_id,
                                  &msg_context->color_list);

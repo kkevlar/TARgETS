@@ -2,7 +2,7 @@
 
 #include "Collision.h"
 
-#define TABLE_SIZE 7069
+#define TABLE_SIZE 1559
 #define BONUS_ADD_BOUND_NEG ((int)-1)
 #define BONUS_ADD_BOUND_POS ((int)1)
 
@@ -82,11 +82,17 @@ int CollisionHandler::prepTableWithShots(std::vector<Shot>& shotList,
                                          int endIndex)
 {
     int hashCollisions = 0;
+
+    invalidateTable();
+
     for (int i = beginIndex; i < endIndex; i++)
     {
-        if (!shotList.data()[i].obj.show) continue;
-
-            glm::vec3 shotPos = shotList.data()[i].obj.postInterp.pos;
+        if (!(shotList.data()[i].obj.show))
+        {
+            continue;
+        }
+      
+		glm::vec3 shotPos = shotList.data()[i].obj.postInterp.pos;
 
         for (int x = BONUS_ADD_BOUND_NEG; x <= BONUS_ADD_BOUND_POS; x++)
         {
@@ -107,8 +113,10 @@ int CollisionHandler::prepTableWithShots(std::vector<Shot>& shotList,
 bool CollisionHandler::testCollision(glm::vec3 position, float radius)
 {
     uint32_t key = v3hash(position, radius, 0, 0, 0);
+    bool result = false;
+    int j;
 
-    for (int j = 0; j < collisionTable.size(); j++)
+    for (j = 0; j < collisionTable.size(); j++)
     {
         key += j;
         key %= collisionTable.size();
@@ -116,19 +124,19 @@ bool CollisionHandler::testCollision(glm::vec3 position, float radius)
         if (glm::distance(collisionTable.data()[key].shotLocation, position) <
             radius)
         {
-            return true;
+            result = true;
+            break;
         }
 
         if (!collisionTable.data()[key].valid)
         {
-            return false;
+            result = false;
+            break;
         }
     }
 
-    return false;
+    return result;
 }
-
-
 
 void CollisionHandler::invalidateTable()
 {
@@ -155,13 +163,10 @@ bool CollisionHandler::unitTest()
     {
         for (int y = 0; y < 5; y++)
         {
-            for (int z = 0; z < 5; z++)
-            {
-                Shot s = Shot();
-                s.obj.postInterp.pos = glm::vec3(x, y, z);
-				s.obj.show = 1;
-                shots.push_back(s);
-            }
+            Shot s = Shot();
+            s.obj.postInterp.pos = glm::vec3(x, y, 0);
+            s.obj.show = 1;
+            shots.push_back(s);
         }
     }
 
@@ -205,15 +210,13 @@ bool CollisionHandler::unitTest()
     testPoses.push_back(glm::vec3(4, 0, -0.15));
     testExpect.push_back(false);
 
-    invalidateTable();
-
     int c = prepTableWithShots(shots, collideDist, 0, shots.size());
     printf("Collisions: %d, shots: %d\n", c, shots.size());
 
     for (int i = 0; i < testPoses.size(); i++)
     {
         bool actual;
-        actual = testCollision(testPoses.data()[i], collideDist );
+        actual = testCollision(testPoses.data()[i], collideDist);
         if (actual != testExpect.at(i))
         {
             printf("Test failed!");
