@@ -8,6 +8,7 @@ ShotManager::ShotManager(int players)
 {
     shots = std::vector<Shot>();
     nextShotIndex = 0;
+    lastShotTime = 0;
 
     for (int i = 0; i < players; i++)
     {
@@ -59,9 +60,15 @@ void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
     if (index >= 0) shots.data()[index] = shot;
 }
 
-void ShotManager::shootAndSendToServer(glm::vec3 targetPos, int myPlayerId)
+void ShotManager::shootAndSendToServer(glm::vec3 targetPos, int myPlayerId, float currentTime)
 {
     int index;
+
+	if (currentTime - lastShotTime < 0.25)
+        return;
+    else
+        lastShotTime = currentTime;
+	
     for (int i = 0; i < MAX_SHOTS_PER_PLAYER;
          i++, nextShotIndex++, nextShotIndex %= MAX_SHOTS_PER_PLAYER)
     {
@@ -123,7 +130,10 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
     }
 }
 
-void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision)
+void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision, int myPlayerId)
 {
-    collision.prepTableWithShots(shots, 0, shots.size(), COLLISION_RADIUS);
+    collision.prepTableWithShots(
+        shots, myPlayerId * MAX_SHOTS_PER_PLAYER,
+        myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER,
+        COLLISION_RADIUS);
 }

@@ -14,9 +14,9 @@ ZJ Wood CPE 471 Lab 3 base code
 #include "message.h"
 #include "webclient.h"
 
+#include "Collision.h"
 #include "Shape.h"
 #include "ShotManager.h"
-#include "Collision.h"
 #include "WindowManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -455,21 +455,21 @@ class Application : public EventCallbacks
         myCursor.height = vangle;
         myCursor.calc_result();
 
-        Shot ball ;
-        if (msg_context->player_id >= 0)
-            ball = shots.getMyShotAtIndex(0, msg_context->player_id);
-        else
-            ball = Shot();
-			   
-
+        
         if (md && msg_context->player_id >= 0)
         {
-            shots.shootAndSendToServer(myCursor.result.pos, msg_context->player_id);
+            shots.shootAndSendToServer(myCursor.result.pos,
+                                       msg_context->player_id, glfwGetTime());
         }
 
         shots.advanceShots(frametime);
 
-		shots.fillCollisionHandlerWithMyShots(collision);
+        if (msg_context->player_id >= 0)
+        {
+            shots.fillCollisionHandlerWithMyShots(collision,
+                                                  msg_context->player_id);
+		}
+       
 
         if (msg_context->player_id >= 0)
         {
@@ -524,7 +524,8 @@ class Application : public EventCallbacks
                     cube->interpBetween();
                 }
 
-                if (!cube->hit && collision.testCollision(cube->postInterp.pos, COLLISION_RADIUS))
+                if (!cube->hit && collision.testCollision(cube->postInterp.pos,
+                                                          COLLISION_RADIUS))
                 {
                     cube->beShot(i, msg_context->player_id,
                                  &msg_context->color_list);
@@ -552,15 +553,13 @@ class Application : public EventCallbacks
         glBindVertexArray(0);
         prog->unbind();
 
-       
-            shapeprog->bind();
+        shapeprog->bind();
         glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
         glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
 
-		shots.drawShots(shapeprog,shape,msg_context->color_list);
+        shots.drawShots(shapeprog, shape, msg_context->color_list);
 
         shapeprog->unbind();
-        
     }
 };
 //******************************************************************************************
@@ -588,8 +587,6 @@ int main(int argc, char **argv)
     application->init(resourceDir);
     application->initGeom();
     application->initTargetManager();
-
-    
 
     glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR,
                      GLFW_CURSOR_HIDDEN);
