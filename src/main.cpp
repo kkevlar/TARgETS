@@ -488,8 +488,10 @@ class Application : public EventCallbacks
 
 		//ball.obj.show = 0;
 		std::vector<Shot> shotList = std::vector<Shot>();
+
         if (ball.obj.show)
         shotList.push_back(ball);
+
         collision.prepTableWithShots(shotList, COLLISION_RADIUS, 0,
                                      shotList.size());
 

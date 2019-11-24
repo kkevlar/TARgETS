@@ -121,7 +121,8 @@ bool CollisionHandler::testCollision(glm::vec3 position, float radius)
         key += j;
         key %= collisionTable.size();
 
-        if (glm::distance(collisionTable.data()[key].shotLocation, position) <
+        if (collisionTable.data()[key].valid && glm::distance(
+                collisionTable.data()[key].shotLocation, position) <
             radius)
         {
             result = true;

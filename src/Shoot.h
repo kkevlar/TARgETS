@@ -22,6 +22,10 @@ class ShotManager
     int selfIndexCalc(int index, int myPlayerId);
    public:
     ShotManager(int max_player_count);
+    void shootAndSendToServer();
+    void drawShots();
+    void advanceShots();
+    void fillCollisionHandlerWithMyShots();
     Shot getMyShotAtIndex(int index, int myPlayerId);
     void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
 
