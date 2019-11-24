@@ -15,7 +15,7 @@ ZJ Wood CPE 471 Lab 3 base code
 #include "webclient.h"
 
 #include "Shape.h"
-#include "Shoot.h"
+#include "ShotManager.h"
 #include "Collision.h"
 #include "WindowManager.h"
 
@@ -462,44 +462,14 @@ class Application : public EventCallbacks
             ball = Shot();
 			   
 
-        if (md)
+        if (md && msg_context->player_id >= 0)
         {
-            ball.obj.source.scale = vec3(4, 4, 4);
-            ball.obj.source.pos = vec3(0, -8, 0);
-            ball.obj.source.rot = vec3(0, 0, 0);
-            ball.obj.target = ball.obj.source;
-
-            ball.obj.target.pos = myCursor.result.pos;
-            ball.obj.target.scale = vec3(0.1, 0.1, 0.1);
-            ball.obj.phase = 0;
-            ball.obj.show = 1;
-            ball.obj.resetInterp();
+            shots.shootAndSendToServer(myCursor.result.pos, msg_context->player_id);
         }
 
-        
+        shots.advanceShots(frametime);
 
-        ball.obj.interp += 3 * frametime;
-        ball.obj.interpBetween();
-
-		if (ball.obj.show && ball.obj.interp > 0.99)
-        {
-            ball.obj.show = 0;
-        }
-
-		//ball.obj.show = 0;
-		std::vector<Shot> shotList = std::vector<Shot>();
-
-        if (ball.obj.show)
-        shotList.push_back(ball);
-
-        collision.prepTableWithShots(shotList, COLLISION_RADIUS, 0,
-                                     shotList.size());
-
-
-        if (msg_context->player_id >= 0)
-        {
-            shots.setMyShotAtIndex(ball, 0, msg_context->player_id);
-        }
+		shots.fillCollisionHandlerWithMyShots(collision);
 
         if (msg_context->player_id >= 0)
         {
@@ -582,22 +552,15 @@ class Application : public EventCallbacks
         glBindVertexArray(0);
         prog->unbind();
 
-        if (ball.obj.show)
-        {
+       
             shapeprog->bind();
+        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
 
-			vec3 clr =
-                msg_context->color_list.get_color(msg_context->player_id);
-            glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
-            glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
-            glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+		shots.drawShots(shapeprog,shape,msg_context->color_list);
 
-            ball.obj.sendModelMatrix(shapeprog, glm::mat4(1));
-            shape.draw(shapeprog);
-
-            shapeprog->unbind();
-        }
+        shapeprog->unbind();
+        
     }
 };
 //******************************************************************************************

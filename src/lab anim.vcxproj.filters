@@ -13,8 +13,9 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="message.cpp" />
     <ClCompile Include="webclient.cpp" />
-    <ClCompile Include="Shoot.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="Shot.cpp" />
+    <ClCompile Include="ShotManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Program.h" />
@@ -26,8 +27,9 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="webclient.h" />
-    <ClInclude Include="Shoot.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="Shot.h" />
+    <ClInclude Include="ShotManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">

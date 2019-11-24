@@ -1,32 +1,30 @@
 #pragma once
+#include <stdint.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <memory>
 #include <vector>
-#include "GLSL.h"
 #include "Cube.h"
-#include <stdint.h>
-
-class Shot
-{
-   public:
-    //bool mine;
-    int playerId;
-    InterpObject obj;
-};
+#include "GLSL.h"
+#include "Shape.h"
+#include "Collision.h"
+#include "Shot.h"
 
 class ShotManager
 {
    private:
     std::vector<Shot> shots;
+    int nextShotIndex;
     int selfIndexCalc(int index, int myPlayerId);
+
    public:
     ShotManager(int max_player_count);
-    void shootAndSendToServer();
-    void drawShots();
-    void advanceShots();
-    void fillCollisionHandlerWithMyShots();
+    void shootAndSendToServer(glm::vec3 targetPos, int myPlayerId);
+    void advanceShots(float frametime);
+    void drawShots(std::shared_ptr<Program> prog,
+                   Shape shape,
+                   ColorList& color_list);
+    void fillCollisionHandlerWithMyShots(CollisionHandler& collision);
     Shot getMyShotAtIndex(int index, int myPlayerId);
     void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
-
 };

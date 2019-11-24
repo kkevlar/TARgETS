@@ -6,7 +6,7 @@
 #include <vector>
 #include "Cube.h"
 #include "GLSL.h"
-#include "Shoot.h"
+#include "Shot.h"
 
 #define COLLISION_RADIUS ((float) 1.0f)
 
