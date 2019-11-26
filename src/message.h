@@ -18,9 +18,9 @@ typedef uint8_t MessageId;
 #define MSG_ROOM_CHOOSE ((MessageId) 8) 
 #define MSG_SCORE_LIST ((MessageId) 9) 
 #define MSG_CLIENT_QUIT ((MessageId) 10) 
-#define MSG_PID_COLORS ((MessageId) 11) 
-#define MSG_BALL_PROGRESS_UPDATE ((MessageId) 12) 
-#define MSG_BALL_PROGRESS_LIST ((MessageId) 13) 
+#define MSG_ADDSHOT ((MessageId) 14) 
+#define MSG_NEW_SHOT_FROM_CLIENT ((MessageId) 15) 
+#define MSG_REALIGN ((MessageId) 55) 
 
 typedef struct MessageContext
 {

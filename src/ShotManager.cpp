@@ -3,12 +3,15 @@
 #include "ShotManager.h"
 
 #define MAX_SHOTS_PER_PLAYER 32
+std::mutex shotMutex;
+
 
 ShotManager::ShotManager(int players)
 {
     shots = std::vector<Shot>();
     nextShotIndex = 0;
     lastShotTime = 0;
+    initialized = true;
 
     for (int i = 0; i < players; i++)
     {
@@ -23,6 +26,8 @@ ShotManager::ShotManager(int players)
         }
     }
 }
+
+bool ShotManager::isInitialized() { return initialized; }
 
 int ShotManager::selfIndexCalc(int index, int myPlayerId)
 {
@@ -46,29 +51,40 @@ int ShotManager::selfIndexCalc(int index, int myPlayerId)
 
 Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
 {
+    Shot ret;
+
+    shotMutex.lock();
+
     index = selfIndexCalc(index, myPlayerId);
-    if (index < 0)
-        return Shot();
-    else
-        return shots.at(index);
+    if (index >= 0) ret = shots.at(index);
+
+    shotMutex.unlock();
+
+    return ret;
 }
 
 void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
 {
+  shotMutex.lock();
+
     index = selfIndexCalc(index, myPlayerId);
 
     if (index >= 0) shots.data()[index] = shot;
+
+    shotMutex.unlock();
 }
 
-void ShotManager::shootAndSendToServer(glm::vec3 targetPos, int myPlayerId, float currentTime)
+void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
+                                       int myPlayerId,
+                                       float currentTime)
 {
     int index;
 
-	if (currentTime - lastShotTime < 0.25f)
+    if (currentTime - lastShotTime < 0.25f)
         return;
     else
         lastShotTime = currentTime;
-	
+
     for (int i = 0; i < MAX_SHOTS_PER_PLAYER;
          i++, nextShotIndex++, nextShotIndex %= MAX_SHOTS_PER_PLAYER)
     {
@@ -97,13 +113,14 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos, int myPlayerId, floa
 
 void ShotManager::advanceShots(float frametime)
 {
+  shotMutex.lock();
     for (int i = 0; i < shots.size(); i++)
     {
         Shot& ball = shots.data()[i];
 
         if (!ball.obj.show) continue;
 
-        ball.obj.interp += 3*frametime;
+        ball.obj.interp += 3 * frametime;
         ball.obj.interpBetween();
 
         if (ball.obj.interp > 0.99)
@@ -111,12 +128,15 @@ void ShotManager::advanceShots(float frametime)
             ball.obj.show = 0;
         }
     }
+  shotMutex.unlock();
 }
 
 void ShotManager::drawShots(std::shared_ptr<Program> prog,
                             Shape shape,
                             ColorList& color_list)
 {
+    shotMutex.lock();
+
     for (int i = 0; i < shots.size(); i++)
     {
         Shot& ball = shots.data()[i];
@@ -128,12 +148,19 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
         ball.obj.sendModelMatrix(prog, glm::mat4(1));
         shape.draw(prog);
     }
+
+      shotMutex.unlock();
+
 }
 
-void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision, int myPlayerId)
+void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision,
+                                                  int myPlayerId)
 {
+  shotMutex.lock();
     collision.prepTableWithShots(
         shots, COLLISION_RADIUS, myPlayerId * MAX_SHOTS_PER_PLAYER,
-        myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER
-        );
+        myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER);
+    shotMutex.unlock();
 }
+
+

@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "Cube.h"
 #include "GLSL.h"
@@ -17,6 +18,8 @@ class ShotManager
     std::vector<Shot> shots;
     int nextShotIndex;
     int selfIndexCalc(int index, int myPlayerId);
+    bool initialized;
+    
 
    public:
     ShotManager(int max_player_count);
@@ -28,4 +31,6 @@ class ShotManager
     void fillCollisionHandlerWithMyShots(CollisionHandler& collision, int myPlayerId);
     Shot getMyShotAtIndex(int index, int myPlayerId);
     void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
+    bool isInitialized();
+    
 };
