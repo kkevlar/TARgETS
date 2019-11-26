@@ -25,6 +25,7 @@ class CollisionHandler
                            int beginIndex,
                            int endIndex);
     bool testCollision(glm::vec3 position, float radius);
+    bool secret;
 
    private:
     std::vector<CollisionBucket> collisionTable;

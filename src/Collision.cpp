@@ -151,6 +151,7 @@ CollisionHandler::CollisionHandler()
 {
     CollisionBucket bucket;
     bucket.valid = 0;
+    secret = false;
     collisionTable = std::vector<CollisionBucket>(TABLE_SIZE, bucket);
     unitTest();
     unitTest();

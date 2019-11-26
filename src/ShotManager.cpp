@@ -2,7 +2,7 @@
 
 #include "ShotManager.h"
 
-#define MAX_SHOTS_PER_PLAYER 64
+#define MAX_SHOTS_PER_PLAYER 32
 
 ShotManager::ShotManager(int players)
 {
@@ -64,7 +64,7 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos, int myPlayerId, floa
 {
     int index;
 
-	if (currentTime - lastShotTime < 0.25)
+	if (currentTime - lastShotTime < 0.25f)
         return;
     else
         lastShotTime = currentTime;
@@ -101,9 +101,9 @@ void ShotManager::advanceShots(float frametime)
     {
         Shot& ball = shots.data()[i];
 
-        if (!ball.obj.show) return;
+        if (!ball.obj.show) continue;
 
-        ball.obj.interp += 3 * frametime;
+        ball.obj.interp += 3*frametime;
         ball.obj.interpBetween();
 
         if (ball.obj.interp > 0.99)
@@ -121,7 +121,7 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
     {
         Shot& ball = shots.data()[i];
 
-        if (!ball.obj.show) return;
+        if (!ball.obj.show) continue;
 
         glm::vec3 clr = color_list.get_color(i / MAX_SHOTS_PER_PLAYER);
         glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
@@ -133,7 +133,7 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
 void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision, int myPlayerId)
 {
     collision.prepTableWithShots(
-        shots, myPlayerId * MAX_SHOTS_PER_PLAYER,
-        myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER,
-        COLLISION_RADIUS);
+        shots, COLLISION_RADIUS, myPlayerId * MAX_SHOTS_PER_PLAYER,
+        myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER
+        );
 }

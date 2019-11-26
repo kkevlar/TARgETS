@@ -25,7 +25,7 @@ using namespace glm;
 using namespace std;
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
-#define PLAYER_CURSOR_COUNT 256
+#define PLAYER_CURSOR_COUNT 32
 
 static uint8_t tmpWriteBuf[256];
 
@@ -375,6 +375,8 @@ class Application : public EventCallbacks
         shapeprog->addUniform("V");
         shapeprog->addUniform("M");
         shapeprog->addUniform("camPos");
+        shapeprog->addUniform("bonuscolor");
+
         shapeprog->addAttribute("vertPos");
         shapeprog->addAttribute("vertNor");
         shapeprog->addAttribute("vertTex");

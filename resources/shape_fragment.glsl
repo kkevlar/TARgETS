@@ -4,6 +4,7 @@ in vec3 fragPos;
 //in vec3 fragTex;
 //in vec3 fragNor;
 //uniform vec3 camPos;
+uniform vec3 bonuscolor;
 void main()
 {
 	//vec3 normal = normalize(fragNor);
@@ -11,7 +12,7 @@ void main()
 	//oof = normalize(oof);
 	
 	
-	color.rgb = vec3(1,0,0);
+	color.rgb = vec3(bonuscolor);
 	color.a = 1;
 	
 }
