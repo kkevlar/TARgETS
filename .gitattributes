@@ -1,0 +1,4 @@
+
+client/ext/glad/* linguist-vendored
+*.h linguist-language=Cpp
+
