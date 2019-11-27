@@ -32,11 +32,11 @@ typedef struct MessageContext
     ColorList color_list;
 } MessageContext;
 
-void assignBytesFromNum(uint8_t* buf, int num, int bytes);
-void assignBytesFromFloat(uint8_t* buf, float num, int bytes);
+int assignBytesFromNum(uint8_t* buf, int num, int bytes);
+int assignBytesFromFloat(uint8_t* buf, float num, int bytes);
 uint32_t assignNumFromBytes(uint8_t* buf, int bytes);
 float assignFloatFromBytes(uint8_t* buf, int bytes);
 void initMessageHandler(MessageContext* context);
 void handleMessage(MessageId id, uint8_t* message, int length);
-
-
+int assignBytesFromVec3(uint8_t* buf, glm::vec3 vec);
+glm::vec3 assignVec3FromBytes(uint8_t* buf, int bytes);

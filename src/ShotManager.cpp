@@ -1,10 +1,15 @@
 
 
 #include "ShotManager.h"
+#include "message.h"
+#include "webclient.h"
 
 #define MAX_SHOTS_PER_PLAYER 32
-std::mutex shotMutex;
 
+/* Oh no! A global mutex :(.... Idk how to make this a member of the class but
+ * who cares we will only ever need one shot manager */
+std::mutex shotMutex;
+static uint8_t tmpWriteBuf[256];
 
 ShotManager::ShotManager(int players)
 {
@@ -65,7 +70,7 @@ Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
 
 void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
 {
-  shotMutex.lock();
+    shotMutex.lock();
 
     index = selfIndexCalc(index, myPlayerId);
 
@@ -108,12 +113,18 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
     ball.obj.show = 1;
     ball.obj.resetInterp();
 
+    int offset = 0;
+    offset += assignBytesFromNum(tmpWriteBuf + offset, index, 3);
+    offset += assignBytesFromVec3(tmpWriteBuf + offset, ball.obj.source.pos);
+    offset += assignBytesFromVec3(tmpWriteBuf + offset, ball.obj.target.pos);
+    clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, offset);
+
     setMyShotAtIndex(ball, nextShotIndex, myPlayerId);
 }
 
 void ShotManager::advanceShots(float frametime)
 {
-  shotMutex.lock();
+    shotMutex.lock();
     for (int i = 0; i < shots.size(); i++)
     {
         Shot& ball = shots.data()[i];
@@ -128,7 +139,7 @@ void ShotManager::advanceShots(float frametime)
             ball.obj.show = 0;
         }
     }
-  shotMutex.unlock();
+    shotMutex.unlock();
 }
 
 void ShotManager::drawShots(std::shared_ptr<Program> prog,
@@ -149,18 +160,15 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
         shape.draw(prog);
     }
 
-      shotMutex.unlock();
-
+    shotMutex.unlock();
 }
 
 void ShotManager::fillCollisionHandlerWithMyShots(CollisionHandler& collision,
                                                   int myPlayerId)
 {
-  shotMutex.lock();
+    shotMutex.lock();
     collision.prepTableWithShots(
         shots, COLLISION_RADIUS, myPlayerId * MAX_SHOTS_PER_PLAYER,
         myPlayerId * MAX_SHOTS_PER_PLAYER + MAX_SHOTS_PER_PLAYER);
     shotMutex.unlock();
 }
-
-

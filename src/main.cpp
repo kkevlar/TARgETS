@@ -101,10 +101,6 @@ class Application : public EventCallbacks
     MessageContext *msg_context;
     CollisionHandler collision;
 
-    float temporary_cursor;
-
-    int arm_l, arm_r;
-    std::vector<Target> cylinders;
     std::vector<CylCoords> cursors;
 
     ShotManager shots = ShotManager(PLAYER_CURSOR_COUNT);

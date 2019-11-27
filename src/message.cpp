@@ -35,18 +35,29 @@ static inline float map(
 
 #define FLOAT_DEGREES 10000
 
-void assignBytesFromNum(uint8_t *buf, int num, int bytes)
+int assignBytesFromNum(uint8_t *buf, int num, int bytes)
 {
     for (int i = 0; i < bytes; i++)
     {
         buf[i] = ((num >> (8 * i)) & 0x00FF);
     }
+    return bytes;
 }
 
-void assignBytesFromFloat(uint8_t *buf, float num, int bytes)
+int assignBytesFromFloat(uint8_t *buf, float num, int bytes)
 {
     buf[0] = (!(!(num < 0)));
     assignBytesFromNum(buf + 1, abs(num) * (FLOAT_DEGREES + 0.0f), bytes - 1);
+    return bytes;
+}
+
+int assignBytesFromVec3(uint8_t *buf, glm::vec3 vec)
+{
+    int offset = 0;
+    offset += assignBytesFromFloat(buf + offset, vec.x, 4);
+    offset += assignBytesFromFloat(buf + offset, vec.y, 4);
+    offset += assignBytesFromFloat(buf + offset, vec.z, 4);
+    return offset;
 }
 
 uint32_t assignNumFromBytes(uint8_t *buf, int bytes)
@@ -68,6 +79,26 @@ float assignFloatFromBytes(uint8_t *buf, int bytes)
 
     if (buf[0]) f *= -1;
     return f;
+}
+
+glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
+{
+    if (bytes != 12)
+    {
+        fprintf(stderr,
+                "Attempted to unserialize a vec3 with a non-standard number of "
+                "bytes\n");
+        return glm::vec3(0, 0, 0);
+    }
+
+	uint8_t offset = 0;
+    glm::vec3 result = glm::vec3(0, 0, 0);
+        result.x = assignFloatFromBytes(buf + offset, 4);
+    offset += 4;
+        result.y = assignFloatFromBytes(buf + offset, 4);
+    offset += 4;
+        result.z = assignFloatFromBytes(buf + offset, 4);
+    offset += 4;
 }
 
 void handlerAddBox(MessageContext *context,
