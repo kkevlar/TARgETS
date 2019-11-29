@@ -473,11 +473,11 @@ class Application : public EventCallbacks
         {
             myCursor.calc_result();
             M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
-            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+           /* glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
             vec3 clr =
                 msg_context->color_list.get_color(msg_context->player_id);
             glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);*/
         }
 
         msg_context->mutex_cursors.lock();
@@ -488,7 +488,7 @@ class Application : public EventCallbacks
                 /* printf("%3.3f %3.3f \n", myCursor.angle,
                         cursors.data()[i].angle);*/
 
-                if (msg_context->player_id == i) continue;
+               // if (msg_context->player_id == i) continue;
 
                 cursors.data()[i].calc_result();
                 M = cursors.data()[i].result.calc_scale(

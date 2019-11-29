@@ -9,16 +9,7 @@ public class PlayerUpdater implements Runnable {
 		this.server = server;
 		new Thread(this).start();
 	}
-	
-	private boolean sendNums()
-	{
-		for(Player player : server.getPlayers())
-		{
-			if(player.numsChanged)
-				return true;
-		}
-		return false;
-	}
+
 	
 	@Override
 	public void run() 

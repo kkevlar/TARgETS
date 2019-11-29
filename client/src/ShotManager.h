@@ -20,6 +20,7 @@ class ShotManager
     int selfIndexCalc(int index, int myPlayerId);
     int serializeShot(uint8_t* buf, Shot shot, int index);
     bool initialized;
+    void unitTest();
 
    public:
     ShotManager(int max_player_count);

@@ -11,4 +11,5 @@ class Shot
 {
    public:
     InterpObject obj;
+    void animate();
 };

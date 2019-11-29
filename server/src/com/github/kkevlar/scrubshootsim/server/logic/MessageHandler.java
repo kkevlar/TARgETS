@@ -39,6 +39,7 @@ public class MessageHandler
 		msg.data = m.data;
 		msg.length = m.length;
 		m.context.getGame().getServer().sendToAll(msg);
+		m.context.getPlayer().score++;
 	}
 
 	private static void handleNewShotFromClient(ToServerMsg m)
@@ -58,7 +59,12 @@ public class MessageHandler
 
 	private static void handleUpdateCursor(ToServerMsg m)
 	{
+		if(m.length < 10 || m.data == null)
+			System.err.println("Didnt allow client to null own position");
+		else
+		{
 		m.context.getPlayer().setPos(m.data, m.length);
+		m.context.getPlayer().updateCursorMsgCount++;}
 	}
 
 	public MessageHandler()

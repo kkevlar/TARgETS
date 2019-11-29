@@ -62,13 +62,13 @@ public class ShootServer extends ServerSocket implements Runnable
 	public void sendToAll(byte[] data, int lengthFromRead)
 	{
 		
-			
+			int size = users.size();
 		
-		for (Player p : users)
+		for (int i = 0; i <size; i++)
 		{
 			try {
-				p.getWriter().write(data, 0, lengthFromRead);
-				p.getWriter().flush();
+				users.get(i).getWriter().write(data, 0, lengthFromRead);
+				users.get(i).getWriter().flush();
 			} catch (IOException e) {
 			}		
 		}

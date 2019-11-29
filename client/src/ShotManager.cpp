@@ -11,7 +11,6 @@
 std::mutex shotMutex;
 static uint8_t tmpWriteBuf[256];
 
-
 #define NUM_BYTES_INDEX 3
 #define NUM_BYTES_SINGLE_V3_FLOAT 5
 #define NUM_BYTES_V3 (NUM_BYTES_SINGLE_V3_FLOAT * 3)
@@ -20,14 +19,16 @@ int ShotManager::serializeShot(uint8_t* buf, Shot shot, int index)
 {
     int offset = 0;
     offset += assignBytesFromNum(buf + offset, index, NUM_BYTES_INDEX);
-    offset += assignBytesFromVec3(buf + offset, shot.obj.source.pos, NUM_BYTES_V3);
-    offset += assignBytesFromVec3(buf + offset, shot.obj.target.pos, NUM_BYTES_V3);
+    offset +=
+        assignBytesFromVec3(buf + offset, shot.obj.source.pos, NUM_BYTES_V3);
+    offset +=
+        assignBytesFromVec3(buf + offset, shot.obj.target.pos, NUM_BYTES_V3);
     return offset;
 }
 
 void ShotManager::unSerializeShot(uint8_t* buf, int length)
 {
-   /* if (length != NUM_BYTES_INDEX + NUM_BYTES_V3 * 2)
+    if (length != NUM_BYTES_INDEX + NUM_BYTES_V3 * 2)
     {
         fprintf(stderr,
                 "Cannot unserialize shot with nonstandard buffer length. "
@@ -38,13 +39,35 @@ void ShotManager::unSerializeShot(uint8_t* buf, int length)
     int index = assignNumFromBytes(buf + offset, NUM_BYTES_INDEX);
     offset += NUM_BYTES_INDEX;
 
-	Shot shot = getGlobalShotAtIndex(index);
-    shot.obj.source.pos = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
-        offset += NUM_BYTES_V3;
-    shot.obj.target.pos = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
+    Shot shot = getGlobalShotAtIndex(index);
+    glm::vec3 temp = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
+    shot.obj.source.pos = temp;
+    offset += NUM_BYTES_V3;
+    temp = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
+    shot.obj.target.pos = temp;
     offset += NUM_BYTES_V3;
 
-	setGlobalShotAtIndex(shot, index);*/
+	shot.animate();
+
+	    setGlobalShotAtIndex(shot, index);
+}
+
+void ShotManager::unitTest()
+{
+    for (int i = 0; i < 10000; i++)
+    {
+        uint8_t buf[64];
+
+        glm::vec3 expect = glm::vec3(i, 22.2, -123.3);
+        assignBytesFromVec3(buf, expect, NUM_BYTES_V3);
+
+        glm::vec3 actual = assignVec3FromBytes(buf, NUM_BYTES_V3);
+
+        if (glm::distance(actual, expect) > 0.01)
+        {
+            abort();
+        }
+    }
 }
 
 ShotManager::ShotManager(int players)
@@ -53,6 +76,8 @@ ShotManager::ShotManager(int players)
     nextShotIndex = 0;
     lastShotTime = 0;
     initialized = true;
+
+	unitTest();
 
     for (int i = 0; i < players; i++)
     {
@@ -127,8 +152,6 @@ void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
     setGlobalShotAtIndex(shot, index);
 }
 
-
-
 void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
                                        int myPlayerId,
                                        float currentTime)
@@ -152,19 +175,12 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
 
     Shot ball = getMyShotAtIndex(nextShotIndex, myPlayerId);
 
-    ball.obj.source.scale = glm::vec3(4, 4, 4);
     ball.obj.source.pos = glm::vec3(0, -8, 0);
-    ball.obj.source.rot = glm::vec3(0, 0, 0);
-    ball.obj.target = ball.obj.source;
+   ball.obj.target.pos = targetPos;
+    ball.animate();   
 
-    ball.obj.target.pos = targetPos;
-    ball.obj.target.scale = glm::vec3(0.1, 0.1, 0.1);
-    ball.obj.phase = 0;
-    ball.obj.show = 1;
-    ball.obj.resetInterp();
-
-	int result = serializeShot(tmpWriteBuf, ball, index);
-	clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, result);
+    int result = serializeShot(tmpWriteBuf, ball, index);
+    clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, result);
 
     setMyShotAtIndex(ball, nextShotIndex, myPlayerId);
 }

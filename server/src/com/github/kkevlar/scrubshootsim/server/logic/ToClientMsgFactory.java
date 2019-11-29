@@ -30,16 +30,23 @@ public class ToClientMsgFactory
 	public static Optional<ToClientMsg> cursorListMessage(List<Player> players)
 	{
 		ArrayList<Byte> poses = new ArrayList<Byte>();
-		for(Player p : players)
+		int psize = players.size();
+		for(int i = 0; i < psize; i++)
 		{
+			Player p = players.get(i);
 			if(p.getPos() != null)
 			{
 				poses.add(p.getId());
-				for(int i = 0; i < p.getPos().length; i++) 
+				for(int j = 0; j < p.getPos().length; j++) 
 				{
-					poses.add(p.getPos()[i]);
+					poses.add(p.getPos()[j]);
 				}
 			}
+			else
+			{
+				System.err.printf("\t\t\tbad bad bad\n");
+			}
+			
 		}
 		
 		if(poses.size() == 0)
@@ -53,6 +60,11 @@ public class ToClientMsgFactory
 		for(int i = 0; i < poses.size(); i++)
 		{
 			m.data[i] = poses.get(i);
+		}
+		
+		if(m.data.length != players.size() * 11)
+		{
+			System.err.printf("Cursorlistbug\n");
 		}
 		
 		return Optional.of(m);

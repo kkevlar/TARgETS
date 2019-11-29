@@ -106,6 +106,8 @@ glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
     offset += bytes / 3;
     result.z = assignFloatFromBytes(buf + offset, bytes / 3);
     offset += bytes / 3;
+
+	return result;
 }
 
 void handlerAddBox(MessageContext *context,
@@ -206,6 +208,9 @@ void handlerCursorList(MessageContext *context,
         int index = assignNumFromBytes(data + i, 1);
 
         context->mutex_cursors.lock();
+
+		
+
         if (data[index] < context->cursors->size())
         {
             context->cursors->data()[index].angle =

@@ -6,12 +6,11 @@ import java.util.Arrays;
 
 public class Player extends GenericServerClient {
 
+	public static int updateCursorMsgCount = 0;
 	private byte[] pos;
 	private byte id;
 	private ShootServer server;
 	public int score = 0;
-	public int chargeCount = 0;
-	public boolean numsChanged = false;
 	private MessageContext context;
 
 	public Player(byte id, ShootServer server, Socket s) throws IOException 
@@ -30,29 +29,6 @@ public class Player extends GenericServerClient {
 		//server.sentToAll("id:" + id);
 	}
 
-	private void setNums(String nums) 
-	{
-		try		
-		{
-			String[] splits = nums.split(",");
-			//			int tempScore = Integer.parseInt(splits[0]);
-			int tempCharge = Integer.parseInt(splits[1]);
-			//			if(tempScore != score)
-			//			{
-			//				score = tempScore;
-			//				numsChanged = true;
-			//			}
-			if(chargeCount != tempCharge)
-			{
-				chargeCount = tempCharge;
-				numsChanged = true;
-			}			
-		}
-		catch(RuntimeException ex)
-		{
-
-		}
-	}
 
 	@Override
 	public void clientDisconnected() {
@@ -81,7 +57,11 @@ public class Player extends GenericServerClient {
 	}
 
 	public void setPos(byte[] pos, int length) {
-		this.pos = Arrays.copyOf(pos, length);
+		this.pos = new byte[length];
+		for(int i = 0; i < length; i++)
+		{
+			this.pos[i] = pos[i];
+		}
 	}
 
 	public void sendToPlayer(byte[] data, int lengthFromRead) 

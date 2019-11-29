@@ -76,15 +76,13 @@ public abstract class GenericServerClient implements Runnable
 						msg.context = this.getContext();
 						msg.data = databuf;
 						msg.length = length;
-						
-						try {
-							server.getSemaphore().acquire();
-						} catch (InterruptedException e) {
-							
-							e.printStackTrace();
-						}						
+						/*
+						 * try { server.getSemaphore().acquire(); } catch (InterruptedException e) {
+						 * 
+						 * e.printStackTrace(); }
+						 */					
 						handler.handleMessage(msg);
-						server.getSemaphore().release();
+						//server.getSemaphore().release();
 
 						code = 0;
 						length = -1;
