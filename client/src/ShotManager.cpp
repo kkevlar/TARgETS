@@ -11,6 +11,42 @@
 std::mutex shotMutex;
 static uint8_t tmpWriteBuf[256];
 
+
+#define NUM_BYTES_INDEX 3
+#define NUM_BYTES_SINGLE_V3_FLOAT 5
+#define NUM_BYTES_V3 (NUM_BYTES_SINGLE_V3_FLOAT * 3)
+
+int ShotManager::serializeShot(uint8_t* buf, Shot shot, int index)
+{
+    int offset = 0;
+    offset += assignBytesFromNum(buf + offset, index, NUM_BYTES_INDEX);
+    offset += assignBytesFromVec3(buf + offset, shot.obj.source.pos, NUM_BYTES_V3);
+    offset += assignBytesFromVec3(buf + offset, shot.obj.target.pos, NUM_BYTES_V3);
+    return offset;
+}
+
+void ShotManager::unSerializeShot(uint8_t* buf, int length)
+{
+   /* if (length != NUM_BYTES_INDEX + NUM_BYTES_V3 * 2)
+    {
+        fprintf(stderr,
+                "Cannot unserialize shot with nonstandard buffer length. "
+                "Expected %d, actual %d\n",
+                NUM_BYTES_INDEX + NUM_BYTES_V3 * 2, length);
+    }
+    int offset = 0;
+    int index = assignNumFromBytes(buf + offset, NUM_BYTES_INDEX);
+    offset += NUM_BYTES_INDEX;
+
+	Shot shot = getGlobalShotAtIndex(index);
+    shot.obj.source.pos = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
+        offset += NUM_BYTES_V3;
+    shot.obj.target.pos = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
+    offset += NUM_BYTES_V3;
+
+	setGlobalShotAtIndex(shot, index);*/
+}
+
 ShotManager::ShotManager(int players)
 {
     shots = std::vector<Shot>();
@@ -54,30 +90,44 @@ int ShotManager::selfIndexCalc(int index, int myPlayerId)
     return index;
 }
 
-Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
+Shot ShotManager::getGlobalShotAtIndex(int index)
 {
     Shot ret;
 
     shotMutex.lock();
 
-    index = selfIndexCalc(index, myPlayerId);
-    if (index >= 0) ret = shots.at(index);
+    if (index >= 0 && index < shots.size()) ret = shots.at(index);
 
     shotMutex.unlock();
 
     return ret;
 }
 
-void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
+void ShotManager::setGlobalShotAtIndex(Shot shot, int index)
 {
     shotMutex.lock();
 
-    index = selfIndexCalc(index, myPlayerId);
-
-    if (index >= 0) shots.data()[index] = shot;
+    if (index >= 0 && index < shots.size()) shots.data()[index] = shot;
 
     shotMutex.unlock();
 }
+
+Shot ShotManager::getMyShotAtIndex(int index, int myPlayerId)
+{
+    Shot ret;
+
+    index = selfIndexCalc(index, myPlayerId);
+    return getGlobalShotAtIndex(index);
+}
+
+void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
+{
+    index = selfIndexCalc(index, myPlayerId);
+
+    setGlobalShotAtIndex(shot, index);
+}
+
+
 
 void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
                                        int myPlayerId,
@@ -113,11 +163,8 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
     ball.obj.show = 1;
     ball.obj.resetInterp();
 
-    int offset = 0;
-    offset += assignBytesFromNum(tmpWriteBuf + offset, index, 3);
-    offset += assignBytesFromVec3(tmpWriteBuf + offset, ball.obj.source.pos);
-    offset += assignBytesFromVec3(tmpWriteBuf + offset, ball.obj.target.pos);
-    clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, offset);
+	int result = serializeShot(tmpWriteBuf, ball, index);
+	clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, result);
 
     setMyShotAtIndex(ball, nextShotIndex, myPlayerId);
 }

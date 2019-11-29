@@ -6,7 +6,6 @@
 #include <vector>
 #include "Cube.h"
 #include "GLSL.h"
-#include "Shape.h"
 
 class Shot
 {

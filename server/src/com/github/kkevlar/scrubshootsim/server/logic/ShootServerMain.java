@@ -44,7 +44,7 @@ public class ShootServerMain
         	s.sendToAll(msg);
         	s.getSemaphore().release();
         	
-        	for(i = 0; i < 5; i++)
+        	for(i = 0; i < 50; i++)
         	{
         	
         	Optional<ToClientMsg> omsg = ToClientMsgFactory.cursorListMessage(s.getPlayers());

@@ -603,6 +603,7 @@ int main(int argc, char **argv)
         application->cursors.push_back(c);
     }
     context.cursors = &application->cursors;
+    context.shots = &application->shots;
 
     clientbegin(&context);
 

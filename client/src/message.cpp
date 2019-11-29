@@ -51,12 +51,19 @@ int assignBytesFromFloat(uint8_t *buf, float num, int bytes)
     return bytes;
 }
 
-int assignBytesFromVec3(uint8_t *buf, glm::vec3 vec)
+int assignBytesFromVec3(uint8_t *buf, glm::vec3 vec, int bytes)
 {
+    if (bytes % 3 != 0)
+    {
+        fprintf(stderr,
+                "Tried to serialize vec3 with a non-divisible-by-3 number\n");
+        abort();
+    }
+
     int offset = 0;
-    offset += assignBytesFromFloat(buf + offset, vec.x, 4);
-    offset += assignBytesFromFloat(buf + offset, vec.y, 4);
-    offset += assignBytesFromFloat(buf + offset, vec.z, 4);
+    offset += assignBytesFromFloat(buf + offset, vec.x, bytes/3);
+    offset += assignBytesFromFloat(buf + offset, vec.y, bytes/3);
+    offset += assignBytesFromFloat(buf + offset, vec.z, bytes/3);
     return offset;
 }
 
@@ -83,7 +90,7 @@ float assignFloatFromBytes(uint8_t *buf, int bytes)
 
 glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
 {
-    if (bytes != 12)
+    if (bytes % 3 != 0 )
     {
         fprintf(stderr,
                 "Attempted to unserialize a vec3 with a non-standard number of "
@@ -91,14 +98,14 @@ glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
         return glm::vec3(0, 0, 0);
     }
 
-	uint8_t offset = 0;
+    uint8_t offset = 0;
     glm::vec3 result = glm::vec3(0, 0, 0);
-        result.x = assignFloatFromBytes(buf + offset, 4);
-    offset += 4;
-        result.y = assignFloatFromBytes(buf + offset, 4);
-    offset += 4;
-        result.z = assignFloatFromBytes(buf + offset, 4);
-    offset += 4;
+    result.x = assignFloatFromBytes(buf + offset, bytes/3);
+    offset += bytes / 3;
+    result.y = assignFloatFromBytes(buf + offset, bytes / 3);
+    offset += bytes / 3;
+    result.z = assignFloatFromBytes(buf + offset, bytes / 3);
+    offset += bytes / 3;
 }
 
 void handlerAddBox(MessageContext *context,
@@ -220,6 +227,14 @@ void handlerSetOwnPid(MessageContext *context,
     printf("My pid %u\n", context->player_id);
 }
 
+void handlerAddShotFromServer(MessageContext *context,
+                              MessageId id,
+                              uint8_t *data,
+                              uint8_t length)
+{
+    context->shots->unSerializeShot(data, length);
+}
+
 void initMessageHandler(MessageContext *context)
 {
     mycontext = context;
@@ -234,4 +249,5 @@ void initMessageHandler(MessageContext *context)
     handler_table[MSG_CURSOR_LIST] = handlerCursorList;
     handler_table[MSG_REMBOX] = handlerRemoveBox;
     handler_table[MSG_SET_YOUR_PID] = handlerSetOwnPid;
+    handler_table[MSG_ADDSHOT] = handlerAddShotFromServer;
 }

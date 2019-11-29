@@ -18,6 +18,7 @@ class ShotManager
     std::vector<Shot> shots;
     int nextShotIndex;
     int selfIndexCalc(int index, int myPlayerId);
+    int serializeShot(uint8_t* buf, Shot shot, int index);
     bool initialized;
 
    public:
@@ -33,5 +34,9 @@ class ShotManager
                                          int myPlayerId);
     Shot getMyShotAtIndex(int index, int myPlayerId);
     void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
+    Shot getGlobalShotAtIndex(int index);
+        void
+        setGlobalShotAtIndex(Shot shot, int index);
     bool isInitialized();
+        void unSerializeShot(uint8_t* buf, int length);
 };

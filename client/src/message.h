@@ -4,6 +4,7 @@
 #include <mutex>
 #include <stdint.h>
 #include "Cube.h"
+#include "ShotManager.h"
 
 typedef uint8_t MessageId;
 
@@ -27,6 +28,7 @@ typedef struct MessageContext
 	std::vector<Target>* boxes;
 	std::mutex mutex_boxes;
 	std::vector<CylCoords>* cursors;
+        ShotManager* shots;
 	std::mutex mutex_cursors;
     int16_t player_id;
     ColorList color_list;
@@ -38,5 +40,5 @@ uint32_t assignNumFromBytes(uint8_t* buf, int bytes);
 float assignFloatFromBytes(uint8_t* buf, int bytes);
 void initMessageHandler(MessageContext* context);
 void handleMessage(MessageId id, uint8_t* message, int length);
-int assignBytesFromVec3(uint8_t* buf, glm::vec3 vec);
+int assignBytesFromVec3(uint8_t* buf, glm::vec3 vec, int bytes);
 glm::vec3 assignVec3FromBytes(uint8_t* buf, int bytes);
