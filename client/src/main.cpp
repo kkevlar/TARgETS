@@ -86,6 +86,7 @@ class Application : public EventCallbacks
 
     // Our shader program
     std::shared_ptr<Program> prog, shapeprog;
+    std::shared_ptr<Program> glowprog;
 
     // Contains vertex information for OpenGL
     GLuint VertexArrayID;
@@ -376,6 +377,27 @@ class Application : public EventCallbacks
         shapeprog->addAttribute("vertPos");
         shapeprog->addAttribute("vertNor");
         shapeprog->addAttribute("vertTex");
+
+		 glowprog = std::make_shared<Program>();
+        glowprog->setVerbose(true);
+        glowprog->setShaderNames(resourceDirectory + "/glow_vertex.glsl",
+                                  resourceDirectory + "/glow_fragment.glsl");
+        if (!glowprog->init())
+        {
+            std::cerr << "One or more shaders failed to compile... exiting!"
+                      << std::endl;
+            exit(1);  // make a breakpoint here and check the output window for
+                      // the error message!
+        }
+        glowprog->addUniform("P");
+        glowprog->addUniform("V");
+        glowprog->addUniform("M");
+        glowprog->addUniform("camPos");
+        glowprog->addUniform("bonuscolor");
+
+        glowprog->addAttribute("vertPos");
+        glowprog->addAttribute("vertNor");
+        glowprog->addAttribute("vertTex");
     }
 
     /****DRAW
@@ -479,14 +501,13 @@ class Application : public EventCallbacks
             glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);*/
         }
-
+        
         msg_context->mutex_cursors.lock();
         for (int i = 0; i < cursors.size(); i++)
         {
             if (cursors.data()[i].show)
             {
-                /* printf("%3.3f %3.3f \n", myCursor.angle,
-                        cursors.data()[i].angle);*/
+              
 
                // if (msg_context->player_id == i) continue;
 
@@ -558,7 +579,40 @@ class Application : public EventCallbacks
         shots.drawShots(shapeprog, shape, msg_context->color_list);
 
         shapeprog->unbind();
+
+		glowprog->bind();
+        glBindVertexArray(VertexArrayID);
+                glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE,
+                                   &P[0][0]);
+                glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE,
+                                   &V[0][0]);
+		 msg_context->mutex_cursors.lock();
+        for (int i = 0; i < cursors.size(); i++)
+        {
+            if (cursors.data()[i].show)
+            {
+                /* printf("%3.3f %3.3f \n", myCursor.angle,
+                        cursors.data()[i].angle);*/
+
+                // if (msg_context->player_id == i) continue;
+                 cursors.data()[i].calc_result();                
+				MatrixIngridients c = cursors.data()[i].result;
+
+                c.scale *= 1.0f + map(sin(w*3), -1, 1, 0.1,.5f);
+                M = c.calc_scale(
+                    c.calc_no_scale());
+                vec3 clr = msg_context->color_list.get_color(i);
+                glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
+                                   &M[0][0]);
+
+                 glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
+            }
+        }
+        msg_context->mutex_cursors.unlock();
+        glowprog->unbind();
+
     }
+
 };
 //******************************************************************************************
 int main(int argc, char **argv)

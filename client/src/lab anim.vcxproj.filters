@@ -41,5 +41,7 @@
     <None Include="..\resources\shader_vertex.glsl" />
     <None Include="..\resources\shape_fragment.glsl" />
     <None Include="..\resources\shape_vertex.glsl" />
+    <None Include="..\resources\glow_fragment.glsl" />
+    <None Include="..\resources\glow_vertex.glsl" />
   </ItemGroup>
 </Project>
