@@ -45,9 +45,7 @@ public class ShootServer extends ServerSocket implements Runnable
 			Socket socket = null;
 			try {
 				socket = accept();
-				Player nuser = new Player(id++,this,socket);
-				MessageContext context = new MessageContext(game, nuser);
-				nuser.setContext(context);
+				Player nuser = new Player(id++,this,socket,game);
 				users.add(nuser);
 			} catch (IOException e) {
 				e.printStackTrace();

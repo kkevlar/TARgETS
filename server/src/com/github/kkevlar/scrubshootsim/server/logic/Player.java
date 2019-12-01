@@ -6,20 +6,23 @@ import java.util.Arrays;
 
 public class Player extends GenericServerClient {
 
-	public static int updateCursorMsgCount = 0;
+	public int updateCursorMsgCount = 0;
 	private byte[] pos;
 	private byte id;
 	private ShootServer server;
 	public int score = 0;
 	private MessageContext context;
+	private GameInstance game;
 
-	public Player(byte id, ShootServer server, Socket s) throws IOException 
+	public Player(byte id, ShootServer server, Socket s, GameInstance game) throws IOException 
 	{
 		super(server, s);
 		System.out.printf("Constructing player %d\n", id);
 		this.setId(id);
 		this.server = server;
-
+		this.pos = new byte[10];
+		this.game = game;
+		this.context = new MessageContext(game, this);
 		this.sendToPlayer(ToClientMsgFactory.setPlayerIdMessage(getId()));
 	}
 
@@ -27,6 +30,7 @@ public class Player extends GenericServerClient {
 	public void clientInit() 
 	{
 		//server.sentToAll("id:" + id);
+		this.context = new MessageContext(game, this);
 	}
 
 

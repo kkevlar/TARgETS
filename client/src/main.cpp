@@ -475,9 +475,15 @@ class Application : public EventCallbacks
         angle += PI_CONST;
         float vangle = map(-ypos, -height, 0, 0, 1);
 
-        assignBytesFromFloat(tmpWriteBuf, angle, 5);
-        assignBytesFromFloat(tmpWriteBuf + 5, vangle, 5);
-        clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 10);
+        static int sendCursorCount = 0;
+
+        if (sendCursorCount == 0)
+        {
+            assignBytesFromFloat(tmpWriteBuf, angle, 5);
+            assignBytesFromFloat(tmpWriteBuf + 5, vangle, 5);
+            clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 10);
+         }
+        sendCursorCount = (sendCursorCount + 1) & 0x3;
 
         CylCoords myCursor;
         myCursor.angle = angle;
@@ -503,6 +509,10 @@ class Application : public EventCallbacks
         {
             myCursor.calc_result();
             M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
+
+            /* This shouldn't need to happen buttttt*/
+            cursors.data()[msg_context->player_id].show = 1;
+
             /* glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
              vec3 clr =
                  msg_context->color_list.get_color(msg_context->player_id);
@@ -517,32 +527,48 @@ class Application : public EventCallbacks
             {
                 // if (msg_context->player_id == i) continue;
 
-                cursors.data()[i].calc_result();
-                M = cursors.data()[i].result.calc_scale(
-                    cursors.data()[i].result.calc_no_scale());
                 vec3 clr = msg_context->color_list.get_color(i);
-                glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
-                                   &M[0][0]);
+                cursors.data()[i].calc_result();
 
                 if (msg_context->player_id == i)
                 {
-               if(glm::distance(cursors.data()[i].result.pos, myCursor.result.pos) > 0.5f )
-               {
-                   vec3 white = vec3(1, 1, 1);
-				  clr = clr + white * map(sin(glfwGetTime()*5),-1,1,0,1); 
-               }
+                    myCursor.calc_result();
+                    M = myCursor.result.calc_scale(
+                        myCursor.result.calc_no_scale());
+
+                    if (glm::distance(cursors.data()[i].result.pos,
+                                      myCursor.result.pos) > 1.0f)
+                    {
+                        float bw = sin(glfwGetTime() * 5);
+
+                        if (bw > 0)
+                        {
+                            vec3 white = vec3(1, 1, 1);
+                            clr = clr + white * bw;
+                        }
+                        else
+                        {
+                            clr = clr * (-bw);
+                        }
+                    }
                 }
+                else
+                {
+                    M = cursors.data()[i].result.calc_scale(
+                        cursors.data()[i].result.calc_no_scale());
+                }
+                glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
+                                   &M[0][0]);
 
                 glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y,
                             clr.z);
 
                 glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
-
             }
         }
         msg_context->mutex_cursors.unlock();
 
-		static int lastRMouse = 0;
+        static int lastRMouse = 0;
 
         msg_context->mutex_boxes.lock();
         for (int i = 0; i <= cubes.elements.size(); i++)
@@ -593,17 +619,15 @@ class Application : public EventCallbacks
                         spos = 1.1f * (cube->postInterp.pos - vec3(0, -8, 0));
                         spos += vec3(0, -8, 0);
 
-                        shots.shootAndSendToServer(spos,
-                                                   msg_context->player_id,
+                        shots.shootAndSendToServer(spos, msg_context->player_id,
                                                    false, glfwGetTime());
                     }
                 }
-                
             }
         }
         msg_context->mutex_boxes.unlock();
 
-		lastRMouse = rmd;
+        lastRMouse = rmd;
 
         glBindVertexArray(0);
         prog->unbind();

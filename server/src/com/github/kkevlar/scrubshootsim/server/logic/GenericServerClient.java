@@ -26,7 +26,7 @@ public abstract class GenericServerClient implements Runnable
 
 	public void run()
 	{
-
+		
 		clientInit();
 
 		int code = 0;
@@ -40,7 +40,7 @@ public abstract class GenericServerClient implements Runnable
 		{
 			
 		}
-
+		
 		while(isConnected)
 		{
 			int bytesread = 0;
@@ -49,9 +49,10 @@ public abstract class GenericServerClient implements Runnable
 			} catch (IOException e) {
 
 			}
-
+			
 			if (bytesread > 0)
 			{
+				
 				for (int i = 0; i < bytesread; i++)
 				{
 					if (code == 0)
@@ -76,13 +77,13 @@ public abstract class GenericServerClient implements Runnable
 						msg.context = this.getContext();
 						msg.data = databuf;
 						msg.length = length;
-						/*
-						 * try { server.getSemaphore().acquire(); } catch (InterruptedException e) {
-						 * 
-						 * e.printStackTrace(); }
-						 */					
+						
+						  try { server.getSemaphore().acquire(); } catch (InterruptedException e) {
+						  
+						  e.printStackTrace(); }
+										
 						handler.handleMessage(msg);
-						//server.getSemaphore().release();
+						server.getSemaphore().release();
 
 						code = 0;
 						length = -1;

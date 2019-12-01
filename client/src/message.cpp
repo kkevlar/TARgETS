@@ -213,7 +213,7 @@ void handlerCursorList(MessageContext *context,
     {
         int index = assignNumFromBytes(data + i, 1);
 
-        if (data[index] < context->cursors->size())
+        if (index >= 0 && index < context->cursors->size())
         {
             context->cursors->data()[index].angle =
                 assignFloatFromBytes(data + 1 + i, 5);
@@ -222,9 +222,7 @@ void handlerCursorList(MessageContext *context,
             context->cursors->data()[index].show = 1;
         }
 
-        /*printf("INFO,SETCURSORPOS,%d,%3.3f,%3.3f,%3.3f\n", index, glfwGetTime(),
-               context->cursors->data()[index].angle,
-               context->cursors->data()[index].height);*/
+
     }
     context->mutex_cursors.unlock();
 }
