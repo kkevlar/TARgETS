@@ -41,6 +41,7 @@ public class MessageHandler
         msg.length = m.length;
         m.context.getGame().getServer().sendToAll(msg);
         m.context.getPlayer().score++;
+        m.context.getGame().checkSendWinningScore(m.context.getPlayer());
 
     }
 
@@ -57,6 +58,7 @@ public class MessageHandler
         }
 
         m.context.getGame().getServer().sendToAll(msg);
+        
     }
 
     private static void handleUpdateCursor(ToServerMsg m)

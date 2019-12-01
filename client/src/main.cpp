@@ -168,19 +168,19 @@ class Application : public EventCallbacks
     {
         double posX, posY;
         float newPt[2];
-        if (action == GLFW_PRESS && button == GLFW_MOUSE_LEFT)
+        if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT)
         {
             md = 1;
         }
-        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_LEFT)
+        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT)
         {
             md = 0;
         }
-        else if (action == GLFW_PRESS && button == GLFW_MOUSE_RIGHT)
+        else if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT)
         {
             rmd = 1;
         }
-        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_RIGHT)
+        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT)
         {
             rmd = 0;
         }
@@ -528,8 +528,8 @@ class Application : public EventCallbacks
                 {
                if(glm::distance(cursors.data()[i].result.pos, myCursor.result.pos) > 0.5f )
                {
-              clr = clr * map(sin(glfwGetTime()*5),-1,1,0,1); 
-              printf("FAILED Closeness test\n");
+                   vec3 white = vec3(1, 1, 1);
+				  clr = clr + white * map(sin(glfwGetTime()*5),-1,1,0,1); 
                }
                 }
 
@@ -541,6 +541,8 @@ class Application : public EventCallbacks
             }
         }
         msg_context->mutex_cursors.unlock();
+
+		static int lastRMouse = 0;
 
         msg_context->mutex_boxes.lock();
         for (int i = 0; i <= cubes.elements.size(); i++)
@@ -582,19 +584,26 @@ class Application : public EventCallbacks
 
                 cube->drawTarget(prog, cubes.elements, mat4(1));
 
-                if (!cube->hit && cube->show && rmd)
+                if (!cube->hit && cube->show && rmd && !lastRMouse)
                 {
                     if (glm::distance(cube->postInterp.pos,
-                                      myCursor.result.pos) < 50)
+                                      myCursor.result.pos) < 10)
                     {
-                        shots.shootAndSendToServer(cube->postInterp.pos,
+                        vec3 spos = cube->postInterp.pos;
+                        spos = 1.1f * (cube->postInterp.pos - vec3(0, -8, 0));
+                        spos += vec3(0, -8, 0);
+
+                        shots.shootAndSendToServer(spos,
                                                    msg_context->player_id,
                                                    false, glfwGetTime());
                     }
                 }
+                
             }
         }
         msg_context->mutex_boxes.unlock();
+
+		lastRMouse = rmd;
 
         glBindVertexArray(0);
         prog->unbind();
@@ -614,9 +623,10 @@ class Application : public EventCallbacks
 
         msg_context->mutex_cursors.lock();
 
-        int win = context->winning_pid;
+        int win = msg_context->winning_pid;
         if (win >= 0 && win <= PLAYER_CURSOR_COUNT)
         {
+            printf("Wegontaginner\n");
             cursors.data()[win].calc_result();
             MatrixIngridients c = cursors.data()[win].result;
             c.scale *= 1.0f + map(sin(w * 3), -1, 1, 0.1, .5f);

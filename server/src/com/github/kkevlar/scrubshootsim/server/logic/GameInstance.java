@@ -5,7 +5,7 @@ public class GameInstance
     private Box[] boxes;
     private ShootServer server;
     private int addIndex;
-    private int winningPlayerId;
+    private byte winningPlayerId;
     private int winningScore;
 
     public GameInstance(ShootServer server)
@@ -19,7 +19,7 @@ public class GameInstance
         this.setServer(server);
         addIndex = 0;
         winningScore = -1;
-        winningPid = -1;
+        winningPlayerId = -1;
     }
 
     public Box addNewBox()
@@ -71,14 +71,14 @@ public class GameInstance
 
     public void checkSendWinningScore(Player p)
     {
-        if (winningScore >= p.score)
+        if (winningScore < p.score)
         {
             winningScore = p.score;
             if (winningPlayerId != p.getId())
             {
                 winningPlayerId = p.getId();
                 ToClientMsg msg = ToClientMsgFactory.setWinningPlayer(winningPlayerId);
-                s.sendToAll(msg);
+                getServer().sendToAll(msg);
             }
         }
     }

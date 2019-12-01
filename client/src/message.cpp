@@ -2,6 +2,11 @@
 
 #include "message.h"
 #include <stdio.h>
+#include <glad/glad.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "GLSL.h"
+#include "WindowManager.h"
 
 static void (*handler_table[0x100])(MessageContext *,
                                     MessageId id,
@@ -217,9 +222,9 @@ void handlerCursorList(MessageContext *context,
             context->cursors->data()[index].show = 1;
         }
 
-        printf("INFO,SETCURSORPOS,%d,%3.3f,%3.3f,%3.3f\n", index, glfwGetTime(),
+        /*printf("INFO,SETCURSORPOS,%d,%3.3f,%3.3f,%3.3f\n", index, glfwGetTime(),
                context->cursors->data()[index].angle,
-               context->cursors->data()[index].height);
+               context->cursors->data()[index].height);*/
     }
     context->mutex_cursors.unlock();
 }
@@ -247,7 +252,7 @@ void handlerSetWinner(MessageContext *context,
                       uint8_t length)
 {
     if (length >= 1)
-        context->winning_id = assignNumFromBytes(data, 1);
+        context->winning_pid = assignNumFromBytes(data, 1);
     else
         fprintf(stderr,
                 "Set-winner handler recieved a strangely-sized message\n");
@@ -268,5 +273,5 @@ void initMessageHandler(MessageContext *context)
     handler_table[MSG_REMBOX] = handlerRemoveBox;
     handler_table[MSG_SET_YOUR_PID] = handlerSetOwnPid;
     handler_table[MSG_ADDSHOT] = handlerAddShotFromServer;
-    handler_table[MSG_SETWINNER] = handlerSetWinner;
+    handler_table[MSG_SET_WINNER] = handlerSetWinner;
 }
