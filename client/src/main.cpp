@@ -25,7 +25,7 @@ using namespace glm;
 using namespace std;
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
-#define PLAYER_CURSOR_COUNT 32
+#define PLAYER_CURSOR_COUNT 64
 
 static uint8_t tmpWriteBuf[256];
 
@@ -82,6 +82,7 @@ class Application : public EventCallbacks
    public:
     int kn = 0;
     int md = 0;
+    int rmd = 0;
     WindowManager *windowManager = nullptr;
 
     // Our shader program
@@ -167,13 +168,21 @@ class Application : public EventCallbacks
     {
         double posX, posY;
         float newPt[2];
-        if (action == GLFW_PRESS)
+        if (action == GLFW_PRESS && button == GLFW_MOUSE_LEFT)
         {
             md = 1;
         }
-        else if (action == GLFW_RELEASE)
+        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_LEFT)
         {
             md = 0;
+        }
+        else if (action == GLFW_PRESS && button == GLFW_MOUSE_RIGHT)
+        {
+            rmd = 1;
+        }
+        else if (action == GLFW_RELEASE && button == GLFW_MOUSE_RIGHT)
+        {
+            rmd = 0;
         }
     }
 
@@ -378,10 +387,10 @@ class Application : public EventCallbacks
         shapeprog->addAttribute("vertNor");
         shapeprog->addAttribute("vertTex");
 
-		 glowprog = std::make_shared<Program>();
+        glowprog = std::make_shared<Program>();
         glowprog->setVerbose(true);
         glowprog->setShaderNames(resourceDirectory + "/glow_vertex.glsl",
-                                  resourceDirectory + "/glow_fragment.glsl");
+                                 resourceDirectory + "/glow_fragment.glsl");
         if (!glowprog->init())
         {
             std::cerr << "One or more shaders failed to compile... exiting!"
@@ -475,11 +484,11 @@ class Application : public EventCallbacks
         myCursor.height = vangle;
         myCursor.calc_result();
 
-        
         if (md && msg_context->player_id >= 0)
         {
             shots.shootAndSendToServer(myCursor.result.pos,
-                                       msg_context->player_id, glfwGetTime());
+                                       msg_context->player_id, true,
+                                       glfwGetTime());
         }
 
         shots.advanceShots(frametime);
@@ -488,28 +497,25 @@ class Application : public EventCallbacks
         {
             shots.fillCollisionHandlerWithMyShots(collision,
                                                   msg_context->player_id);
-		}
-       
+        }
 
         if (msg_context->player_id >= 0)
         {
             myCursor.calc_result();
             M = myCursor.result.calc_scale(myCursor.result.calc_no_scale());
-           /* glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-            vec3 clr =
-                msg_context->color_list.get_color(msg_context->player_id);
-            glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);*/
+            /* glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+             vec3 clr =
+                 msg_context->color_list.get_color(msg_context->player_id);
+             glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
+             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);*/
         }
-        
+
         msg_context->mutex_cursors.lock();
         for (int i = 0; i < cursors.size(); i++)
         {
             if (cursors.data()[i].show)
             {
-              
-
-               // if (msg_context->player_id == i) continue;
+                // if (msg_context->player_id == i) continue;
 
                 cursors.data()[i].calc_result();
                 M = cursors.data()[i].result.calc_scale(
@@ -565,6 +571,17 @@ class Application : public EventCallbacks
                 }
 
                 cube->drawTarget(prog, cubes.elements, mat4(1));
+
+                if (!cube->hit && cube->show && rmd)
+                {
+                    if (glm::distance(cube->postInterp.pos,
+                                      myCursor.result.pos) < 50)
+                    {
+                        shots.shootAndSendToServer(cube->postInterp.pos,
+                                                   msg_context->player_id,
+                                                   false, glfwGetTime());
+                    }
+                }
             }
         }
         msg_context->mutex_boxes.unlock();
@@ -580,39 +597,28 @@ class Application : public EventCallbacks
 
         shapeprog->unbind();
 
-		glowprog->bind();
+        glowprog->bind();
         glBindVertexArray(VertexArrayID);
-                glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE,
-                                   &P[0][0]);
-                glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE,
-                                   &V[0][0]);
-		 msg_context->mutex_cursors.lock();
-        for (int i = 0; i < cursors.size(); i++)
+        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+
+        msg_context->mutex_cursors.lock();
+
+        int win = context->winning_pid;
+        if (win >= 0 && win <= PLAYER_CURSOR_COUNT)
         {
-            if (cursors.data()[i].show)
-            {
-                /* printf("%3.3f %3.3f \n", myCursor.angle,
-                        cursors.data()[i].angle);*/
+            cursors.data()[win].calc_result();
+            MatrixIngridients c = cursors.data()[win].result;
+            c.scale *= 1.0f + map(sin(w * 3), -1, 1, 0.1, .5f);
+            M = c.calc_scale(c.calc_no_scale());
+            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
-                // if (msg_context->player_id == i) continue;
-                 cursors.data()[i].calc_result();                
-				MatrixIngridients c = cursors.data()[i].result;
-
-                c.scale *= 1.0f + map(sin(w*3), -1, 1, 0.1,.5f);
-                M = c.calc_scale(
-                    c.calc_no_scale());
-                vec3 clr = msg_context->color_list.get_color(i);
-                glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
-                                   &M[0][0]);
-
-                 glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
-            }
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
         }
+
         msg_context->mutex_cursors.unlock();
         glowprog->unbind();
-
     }
-
 };
 //******************************************************************************************
 int main(int argc, char **argv)
@@ -646,6 +652,7 @@ int main(int argc, char **argv)
     MessageContext context;
     context.color_list = ColorList();
     context.player_id = -1;
+    context.winning_pid = -1;
     application->msg_context = &context;
     context.boxes = &application->cubes.elements;
 

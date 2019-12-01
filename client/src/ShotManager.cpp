@@ -154,14 +154,18 @@ void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
 
 void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
                                        int myPlayerId,
+                                       bool cooldown,
                                        float currentTime)
 {
     int index;
 
+    if(cooldown)
+    {
     if (currentTime - lastShotTime < 0.25f)
         return;
     else
         lastShotTime = currentTime;
+    }
 
     for (int i = 0; i < MAX_SHOTS_PER_PLAYER;
          i++, nextShotIndex++, nextShotIndex %= MAX_SHOTS_PER_PLAYER)

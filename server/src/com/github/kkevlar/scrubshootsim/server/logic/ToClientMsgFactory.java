@@ -80,6 +80,17 @@ public class ToClientMsgFactory
 		
 		return msg;
 	}
+
+	public static ToClientMsg setWinningPlayer(byte id) 
+	{
+		ToClientMsg msg = new ToClientMsg();
+		
+		msg.code = MessageHandler.MSG_SET_WINNING_PLAYER;
+		msg.length = 1;
+		msg.data = new byte[]{id};
+		
+		return msg;
+	}
 	
 	
 }

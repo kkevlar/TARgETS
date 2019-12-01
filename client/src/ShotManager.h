@@ -26,6 +26,7 @@ class ShotManager
     ShotManager(int max_player_count);
     void shootAndSendToServer(glm::vec3 targetPos,
                               int myPlayerId,
+                              bool cooldown,
                               float currentTime);
     void advanceShots(float frametime);
     void drawShots(std::shared_ptr<Program> prog,
@@ -36,8 +37,7 @@ class ShotManager
     Shot getMyShotAtIndex(int index, int myPlayerId);
     void setMyShotAtIndex(Shot shot, int index, int myPlayerId);
     Shot getGlobalShotAtIndex(int index);
-        void
-        setGlobalShotAtIndex(Shot shot, int index);
+    void setGlobalShotAtIndex(Shot shot, int index);
     bool isInitialized();
-        void unSerializeShot(uint8_t* buf, int length);
+    void unSerializeShot(uint8_t* buf, int length);
 };

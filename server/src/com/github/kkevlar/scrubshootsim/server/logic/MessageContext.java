@@ -4,6 +4,7 @@ public class MessageContext
 {
 	private GameInstance game;
 	private Player player;
+
 	public MessageContext(GameInstance game2, Player nuser) {
 		setGame(game2);
 		setPlayer(nuser);

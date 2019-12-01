@@ -240,6 +240,17 @@ void handlerAddShotFromServer(MessageContext *context,
     context->shots->unSerializeShot(data, length);
 }
 
+void handlerSetWinner(MessageContext *context,
+                              MessageId id,
+                              uint8_t *data,
+                              uint8_t length)
+{
+  if(length >=1)
+  context->winning_id = assignNumFromBytes(data, 1);
+  else
+    fprintf(stderr, "Set-winner handler recieved a strangely-sized message\n");
+}
+
 void initMessageHandler(MessageContext *context)
 {
     mycontext = context;
@@ -255,4 +266,5 @@ void initMessageHandler(MessageContext *context)
     handler_table[MSG_REMBOX] = handlerRemoveBox;
     handler_table[MSG_SET_YOUR_PID] = handlerSetOwnPid;
     handler_table[MSG_ADDSHOT] = handlerAddShotFromServer;
+    handler_table[MSG_SETWINNER] = handlerSetWinner;
 }
