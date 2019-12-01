@@ -61,9 +61,9 @@ int assignBytesFromVec3(uint8_t *buf, glm::vec3 vec, int bytes)
     }
 
     int offset = 0;
-    offset += assignBytesFromFloat(buf + offset, vec.x, bytes/3);
-    offset += assignBytesFromFloat(buf + offset, vec.y, bytes/3);
-    offset += assignBytesFromFloat(buf + offset, vec.z, bytes/3);
+    offset += assignBytesFromFloat(buf + offset, vec.x, bytes / 3);
+    offset += assignBytesFromFloat(buf + offset, vec.y, bytes / 3);
+    offset += assignBytesFromFloat(buf + offset, vec.z, bytes / 3);
     return offset;
 }
 
@@ -90,7 +90,7 @@ float assignFloatFromBytes(uint8_t *buf, int bytes)
 
 glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
 {
-    if (bytes % 3 != 0 )
+    if (bytes % 3 != 0)
     {
         fprintf(stderr,
                 "Attempted to unserialize a vec3 with a non-standard number of "
@@ -100,14 +100,14 @@ glm::vec3 assignVec3FromBytes(uint8_t *buf, int bytes)
 
     uint8_t offset = 0;
     glm::vec3 result = glm::vec3(0, 0, 0);
-    result.x = assignFloatFromBytes(buf + offset, bytes/3);
+    result.x = assignFloatFromBytes(buf + offset, bytes / 3);
     offset += bytes / 3;
     result.y = assignFloatFromBytes(buf + offset, bytes / 3);
     offset += bytes / 3;
     result.z = assignFloatFromBytes(buf + offset, bytes / 3);
     offset += bytes / 3;
 
-	return result;
+    return result;
 }
 
 void handlerAddBox(MessageContext *context,
@@ -199,17 +199,14 @@ void handlerCursorList(MessageContext *context,
                        uint8_t *data,
                        uint8_t length)
 {
-    if (length % (1 + 5 + 5) != 0)
+    if (length % (1 + 5 + 5) != 0 && length > 0)
     {
         printf("Cursor list gonna break! %d\n", length);
     }
+    context->mutex_cursors.lock();
     for (int i = 0; i < length; i += (1 + 5 + 5))
     {
         int index = assignNumFromBytes(data + i, 1);
-
-        context->mutex_cursors.lock();
-
-		
 
         if (data[index] < context->cursors->size())
         {
@@ -219,8 +216,12 @@ void handlerCursorList(MessageContext *context,
                 assignFloatFromBytes(data + 6 + i, 5);
             context->cursors->data()[index].show = 1;
         }
-        context->mutex_cursors.unlock();
+
+        printf("INFO,SETCURSORPOS,%d,%3.3f,%3.3f,%3.3f\n", index, glfwGetTime(),
+               context->cursors->data()[index].angle,
+               context->cursors->data()[index].height);
     }
+    context->mutex_cursors.unlock();
 }
 
 void handlerSetOwnPid(MessageContext *context,
@@ -241,14 +242,15 @@ void handlerAddShotFromServer(MessageContext *context,
 }
 
 void handlerSetWinner(MessageContext *context,
-                              MessageId id,
-                              uint8_t *data,
-                              uint8_t length)
+                      MessageId id,
+                      uint8_t *data,
+                      uint8_t length)
 {
-  if(length >=1)
-  context->winning_id = assignNumFromBytes(data, 1);
-  else
-    fprintf(stderr, "Set-winner handler recieved a strangely-sized message\n");
+    if (length >= 1)
+        context->winning_id = assignNumFromBytes(data, 1);
+    else
+        fprintf(stderr,
+                "Set-winner handler recieved a strangely-sized message\n");
 }
 
 void initMessageHandler(MessageContext *context)
