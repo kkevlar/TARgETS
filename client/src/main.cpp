@@ -524,10 +524,20 @@ class Application : public EventCallbacks
                 glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE,
                                    &M[0][0]);
 
+                if (msg_context->player_id == i)
+                {
+               if(glm::distance(cursors.data()[i].result.pos, myCursor.result.pos) > 0.5f )
+               {
+              clr = clr * map(sin(glfwGetTime()*5),-1,1,0,1); 
+              printf("FAILED Closeness test\n");
+               }
+                }
+
                 glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y,
                             clr.z);
 
                 glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void *)0);
+
             }
         }
         msg_context->mutex_cursors.unlock();
