@@ -148,7 +148,16 @@ class Application : public EventCallbacks
         }
         if (key == GLFW_KEY_N && action == GLFW_PRESS) kn = 1;
         if (key == GLFW_KEY_N && action == GLFW_RELEASE) kn = 0;
-        
+        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        {
+            msg_context->mutex_boxes.lock();
+            for (int i = 0; i < cubes.elements.size(); i++)
+            {
+                cubes.elements.data()[i].beShot(i, msg_context->player_id,
+                                                &msg_context->color_list);
+            }
+            msg_context->mutex_boxes.unlock();
+        }
     }
 
     // callback for the mouse when clicked move the triangle when helper
@@ -618,9 +627,15 @@ class Application : public EventCallbacks
         int win = msg_context->winning_pid;
         if (win >= 0 && win <= PLAYER_CURSOR_COUNT)
         {
-            printf("Wegontaginner\n");
             cursors.data()[win].calc_result();
             MatrixIngridients c = cursors.data()[win].result;
+
+            if (win == msg_context->player_id)
+            {
+                myCursor.calc_result();
+                c = myCursor.result;
+            }
+
             c.scale *= 1.0f + map(sin(w * 3), -1, 1, 0.1, .5f);
             M = c.calc_scale(c.calc_no_scale());
             glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
@@ -633,22 +648,20 @@ class Application : public EventCallbacks
 
         bbprog->bind();
 
-		mat4 Vi = glm::transpose(V);
+        mat4 Vi = glm::transpose(V);
         Vi[0][3] = 0;
         Vi[1][3] = 0;
         Vi[2][3] = 0;
 
         M = mat4(1);
 
-		 glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
         glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
         glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-             
-		
-        bb.draw(bbprog);
-		
-		bbprog->unbind();
 
+        bb.draw(bbprog);
+
+        bbprog->unbind();
     }
 };
 //******************************************************************************************
