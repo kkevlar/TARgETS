@@ -39,5 +39,5 @@ class ShotManager
     Shot getGlobalShotAtIndex(int index);
     void setGlobalShotAtIndex(Shot shot, int index);
     bool isInitialized();
-    void unSerializeShot(uint8_t* buf, int length);
+    void unSerializeShot(uint8_t* buf, int length, int player_id, bool ignoreSelf);
 };

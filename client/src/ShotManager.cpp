@@ -26,7 +26,10 @@ int ShotManager::serializeShot(uint8_t* buf, Shot shot, int index)
     return offset;
 }
 
-void ShotManager::unSerializeShot(uint8_t* buf, int length)
+void ShotManager::unSerializeShot(uint8_t* buf,
+                                  int length,
+                                  int player_id,
+                                  bool ignoreSelf)
 {
     if (length != NUM_BYTES_INDEX + NUM_BYTES_V3 * 2)
     {
@@ -39,6 +42,15 @@ void ShotManager::unSerializeShot(uint8_t* buf, int length)
     int index = assignNumFromBytes(buf + offset, NUM_BYTES_INDEX);
     offset += NUM_BYTES_INDEX;
 
+	int lowbound = selfIndexCalc(0, player_id);
+    int highbound = selfIndexCalc(MAX_SHOTS_PER_PLAYER-1, player_id);
+
+    if (index >= lowbound &&
+        index <= highbound)
+    {
+        return;
+    }
+
     Shot shot = getGlobalShotAtIndex(index);
     glm::vec3 temp = assignVec3FromBytes(buf + offset, NUM_BYTES_V3);
     shot.obj.source.pos = temp;
@@ -47,9 +59,9 @@ void ShotManager::unSerializeShot(uint8_t* buf, int length)
     shot.obj.target.pos = temp;
     offset += NUM_BYTES_V3;
 
-	shot.animate();
+    shot.animate();
 
-	    setGlobalShotAtIndex(shot, index);
+    setGlobalShotAtIndex(shot, index);
 }
 
 void ShotManager::unitTest()
@@ -77,7 +89,7 @@ ShotManager::ShotManager(int players)
     lastShotTime = 0;
     initialized = true;
 
-	unitTest();
+    unitTest();
 
     for (int i = 0; i < players; i++)
     {
@@ -159,12 +171,12 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
 {
     int index;
 
-    if(cooldown)
+    if (cooldown)
     {
-    if (currentTime - lastShotTime < 0.25f)
-        return;
-    else
-        lastShotTime = currentTime;
+        if (currentTime - lastShotTime < 0.25f)
+            return;
+        else
+            lastShotTime = currentTime;
     }
 
     for (int i = 0; i < MAX_SHOTS_PER_PLAYER;
@@ -180,8 +192,8 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
     Shot ball = getMyShotAtIndex(nextShotIndex, myPlayerId);
 
     ball.obj.source.pos = glm::vec3(0, -8, 0);
-   ball.obj.target.pos = targetPos;
-    ball.animate();   
+    ball.obj.target.pos = targetPos;
+    ball.animate();
 
     int result = serializeShot(tmpWriteBuf, ball, index);
     clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, result);
