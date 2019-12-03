@@ -44,7 +44,7 @@ public class GameInstance
         }
 
         getBoxes()[addIndex].angle = addIndex * 5;
-        getBoxes()[addIndex].height = (int) (200 + (200 * Math.sin((((float) addIndex) / 2.0f))));
+        getBoxes()[addIndex].height = (int) (200 + (200 * Math.random()));
 
         return getBoxes()[addIndex];
     }

@@ -44,7 +44,7 @@ public class ShootServerMain
 			s.sendToAll(msg);
 			s.getSemaphore().release();
 
-			for(i = 0; i < 20; i++)
+			for(i = 0; i < 100; i++)
 			{
 				try {
 					s.getSemaphore().acquire();

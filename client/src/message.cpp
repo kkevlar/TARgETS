@@ -241,7 +241,7 @@ void handlerAddShotFromServer(MessageContext *context,
                               uint8_t *data,
                               uint8_t length)
 {
-    context->shots->unSerializeShot(data, length);
+    context->shots->unSerializeShot(data, length, context->player_id, true);
 }
 
 void handlerSetWinner(MessageContext *context,
