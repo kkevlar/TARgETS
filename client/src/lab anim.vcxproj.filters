@@ -43,5 +43,7 @@
     <None Include="..\resources\shape_vertex.glsl" />
     <None Include="..\resources\glow_fragment.glsl" />
     <None Include="..\resources\glow_vertex.glsl" />
+    <None Include="..\resources\test_bb_fragment.glsl" />
+    <None Include="..\resources\test_bb_vertex.glsl" />
   </ItemGroup>
 </Project>

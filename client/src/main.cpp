@@ -1,7 +1,3 @@
-/*
-ZJ Wood CPE 471 Lab 3 base code
-*/
-
 #include <glad/glad.h>
 #include <algorithm>
 #include <iostream>
@@ -88,6 +84,7 @@ class Application : public EventCallbacks
     // Our shader program
     std::shared_ptr<Program> prog, shapeprog;
     std::shared_ptr<Program> glowprog;
+    std::shared_ptr<Program> bbprog;
 
     // Contains vertex information for OpenGL
     GLuint VertexArrayID;
@@ -100,6 +97,7 @@ class Application : public EventCallbacks
         CylinderBufferIndeciesID;
 
     Shape shape;
+    Shape bb;
     MessageContext *msg_context;
     CollisionHandler collision;
 
@@ -150,16 +148,7 @@ class Application : public EventCallbacks
         }
         if (key == GLFW_KEY_N && action == GLFW_PRESS) kn = 1;
         if (key == GLFW_KEY_N && action == GLFW_RELEASE) kn = 0;
-        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
-        {
-            msg_context->mutex_boxes.lock();
-            for (int i = 0; i < cubes.elements.size(); i++)
-            {
-                cubes.elements.data()[i].beShot(i, msg_context->player_id,
-                                                &msg_context->color_list);
-            }
-            msg_context->mutex_boxes.unlock();
-        }
+        
     }
 
     // callback for the mouse when clicked move the triangle when helper
@@ -221,6 +210,10 @@ class Application : public EventCallbacks
         shape.resize();
         shape.init();
 
+        bb.loadMesh(resourceDirectory + "/bb.obj");
+        bb.resize();
+        bb.init();
+
         // generate the VAO
         glGenVertexArrays(1, &VertexArrayID);
         glBindVertexArray(VertexArrayID);
@@ -253,56 +246,10 @@ class Application : public EventCallbacks
         // color
         GLfloat cube_colors[] = {
             // front colors
-            0.8,
-            0.8,
-            1.0,
-            0.8,
-            0.8,
-            1.0,
-            0.8,
-            0.8,
-            1.0,
-            0.8,
-            0.8,
-            1.0,
-            // back colors
-            1,
-            0.8,
-            1,
-            1,
-            0.8,
-            1,
-            1,
-            0.8,
-            1,
-            1,
-            0.8,
-            1,
-            // tube colors
-            0.5,
-            1.0,
-            1.0,
-            0.5,
-            1.0,
-            1.0,
-            0.5,
-            1.0,
-            1.0,
-            0.5,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            0.8,
-            1.0,
-            1.0,
-            0.8,
-            1.0,
-            1.0,
-            0.8,
-            1.0,
-            1.0,
-            0.8,
+            0.8, 0.8, 1.0, 0.8, 0.8, 1.0, 0.8, 0.8, 1.0, 0.8, 0.8, 1.0,
+            1,   0.8, 1,   1,   0.8, 1,   1,   0.8, 1,   1,   0.8, 1,
+            0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0, 1.0,
+            1.0, 1.0, 0.8, 1.0, 1.0, 0.8, 1.0, 1.0, 0.8, 1.0, 1.0, 0.8,
         };
         glGenBuffers(1, &VertexColorIDBox);
         // set the current state to focus on our vertex buffer
@@ -407,6 +354,27 @@ class Application : public EventCallbacks
         glowprog->addAttribute("vertPos");
         glowprog->addAttribute("vertNor");
         glowprog->addAttribute("vertTex");
+
+        bbprog = std::make_shared<Program>();
+        bbprog->setVerbose(true);
+        bbprog->setShaderNames(resourceDirectory + "/test_bb_vertex.glsl",
+                               resourceDirectory + "/test_bb_fragment.glsl");
+        if (!bbprog->init())
+        {
+            std::cerr << "One or more shaders failed to compile... exiting!"
+                      << std::endl;
+            exit(1);  // make a breakpoint here and check the output window for
+                      // the error message!
+        }
+        bbprog->addUniform("P");
+        bbprog->addUniform("V");
+        bbprog->addUniform("M");
+        bbprog->addUniform("camPos");
+        bbprog->addUniform("bonuscolor");
+
+        bbprog->addAttribute("vertPos");
+        bbprog->addAttribute("vertNor");
+        bbprog->addAttribute("vertTex");
     }
 
     /****DRAW
@@ -482,7 +450,7 @@ class Application : public EventCallbacks
             assignBytesFromFloat(tmpWriteBuf, angle, 5);
             assignBytesFromFloat(tmpWriteBuf + 5, vangle, 5);
             clientMsgWrite(MSG_CURSOR_UPDATE, tmpWriteBuf, 10);
-         }
+        }
         sendCursorCount = (sendCursorCount + 1) & 0x3;
 
         CylCoords myCursor;
@@ -662,6 +630,25 @@ class Application : public EventCallbacks
 
         msg_context->mutex_cursors.unlock();
         glowprog->unbind();
+
+        bbprog->bind();
+
+		mat4 Vi = glm::transpose(V);
+        Vi[0][3] = 0;
+        Vi[1][3] = 0;
+        Vi[2][3] = 0;
+
+        M = mat4(1);
+
+		 glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+             
+		
+        bb.draw(bbprog);
+		
+		bbprog->unbind();
+
     }
 };
 //******************************************************************************************
