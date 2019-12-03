@@ -148,16 +148,7 @@ class Application : public EventCallbacks
         }
         if (key == GLFW_KEY_N && action == GLFW_PRESS) kn = 1;
         if (key == GLFW_KEY_N && action == GLFW_RELEASE) kn = 0;
-        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
-        {
-            msg_context->mutex_boxes.lock();
-            for (int i = 0; i < cubes.elements.size(); i++)
-            {
-                cubes.elements.data()[i].beShot(i, msg_context->player_id,
-                                                &msg_context->color_list);
-            }
-            msg_context->mutex_boxes.unlock();
-        }
+       
     }
 
     // callback for the mouse when clicked move the triangle when helper
