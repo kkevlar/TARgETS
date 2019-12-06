@@ -15,7 +15,7 @@ void main()
 		fragNor = vec4(vec4(vertNor, 0.0) * M).xyz;
 	
 	fragTex=vertTex;
-	gl_Position = P * V * M * vec4(vertPos, 1.0);
+	gl_Position = vec4(vertPos, 1.0);
 	fragPos = vec3(0,0,0);
 	fragPos.x = gl_Position.x;
 	fragPos.y = gl_Position.y;

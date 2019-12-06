@@ -97,7 +97,6 @@ class Application : public EventCallbacks
         CylinderBufferIndeciesID;
 
     Shape shape;
-    Shape bb;
     MessageContext *msg_context;
     CollisionHandler collision;
 
@@ -209,10 +208,6 @@ class Application : public EventCallbacks
         shape.loadMesh(resourceDirectory + "/sphere.obj");
         shape.resize();
         shape.init();
-
-        bb.loadMesh(resourceDirectory + "/bb.obj");
-        bb.resize();
-        bb.init();
 
         // generate the VAO
         glGenVertexArrays(1, &VertexArrayID);
@@ -639,7 +634,7 @@ class Application : public EventCallbacks
 
         bbprog->bind();
 
-        mat4 Vi = glm::transpose(V);
+       /* mat4 Vi = glm::transpose(V);
         Vi[0][3] = 0;
         Vi[1][3] = 0;
         Vi[2][3] = 0;
@@ -650,7 +645,7 @@ class Application : public EventCallbacks
         glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
         glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
-        bb.draw(bbprog);
+        bb.draw(bbprog); */
 
         bbprog->unbind();
     }

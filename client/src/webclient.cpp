@@ -51,7 +51,7 @@ int __cdecl clientbegin(MessageContext* context)
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
-    iResult = getaddrinfo("kevinkellar.com" /*"kevinkellar.com"*/, DEFAULT_PORT,
+    iResult = getaddrinfo("localhost" /*"kevinkellar.com"*/, DEFAULT_PORT,
                           &hints, &result);
     if (iResult != 0)
     {
