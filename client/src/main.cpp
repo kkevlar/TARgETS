@@ -364,6 +364,7 @@ class Application : public EventCallbacks
         bbprog->addUniform("M");
         bbprog->addUniform("campos");
         bbprog->addUniform("light1pos");
+        bbprog->addUniform("texOffset");
         bbprog->addUniform("title_tex");
         bbprog->addUniform("normal_map_tex");
         bbprog->addAttribute("vertPos");
@@ -634,7 +635,7 @@ class Application : public EventCallbacks
         glBindVertexArray(VertexArrayID);
 
 		
-		if (glfwGetTime() > 50) playGame = 1;
+		if (glfwGetTime() > 12) playGame = 1;
 
 		        if (playGame)
         {
