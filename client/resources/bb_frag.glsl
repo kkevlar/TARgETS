@@ -58,5 +58,6 @@ tcol.b = clamp(tcol.b,0,1);
 tcol.rgb += vec3(1,1,1) * clamp(spec_factor1,0,1);
 
 color = tcol;
+color = vec4(1,1,1,1);
 
 }
