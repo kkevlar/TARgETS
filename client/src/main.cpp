@@ -14,6 +14,7 @@
 
 #include "Collision.h"
 #include "Shape.h"
+#include "Skybox.h"
 #include "ShotManager.h"
 #include "WindowManager.h"
 
@@ -80,6 +81,7 @@ class Application : public EventCallbacks
     std::shared_ptr<Program> prog, shapeprog;
     std::shared_ptr<Program> glowprog;
     std::shared_ptr<Program> bbprog;
+    std::shared_ptr<Program> skyboxprog;
 
     // Contains vertex information for OpenGL
     GLuint VertexArrayID;
@@ -95,6 +97,7 @@ class Application : public EventCallbacks
     MessageContext *msg_context;
     CollisionHandler collision;
     Billboard billboard;
+    Skybox skybox;
     bool playGame = 0;
 
     std::vector<CylCoords> cursors;
@@ -270,6 +273,7 @@ class Application : public EventCallbacks
         glBindVertexArray(0);
 
         billboard.init(bbprog);
+        skybox.init(skyboxprog);
     }
 
     // General OGL initialization - set OGL state here
@@ -370,6 +374,24 @@ class Application : public EventCallbacks
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
+
+        skyboxprog = std::make_shared<Program>();
+        skyboxprog->setVerbose(true);
+        skyboxprog->setShaderNames(resourceDirectory + "/skybox_vertex.glsl",
+                               resourceDirectory + "/skybox_frag.glsl");
+        if (!skyboxprog->init())
+        {
+            std::cerr << "One or more shaders failed to compile... exiting!"
+                      << std::endl;
+            exit(1);  // make a breakpoint here and check the output window for
+                      // the error message!
+        }
+        skyboxprog->addUniform("P");
+        skyboxprog->addUniform("V");
+        skyboxprog->addUniform("M");
+        skyboxprog->addUniform("skybox_texture");
+        skyboxprog->addAttribute("vertPos");
+        skyboxprog->addAttribute("vertTex");
     }
 
     void game_render(double frametime, glm::mat4 P, glm::mat4 V)
@@ -617,7 +639,9 @@ class Application : public EventCallbacks
                              1000.0f);  // so much type casting... GLM metods
                                         // are quite funny ones
 
-        // animation with the model matrix:
+        V = mycam.process(frametime);
+
+        skybox.draw(skyboxprog,P,V);
 
         static float t = 0;
         t += 0.01;
@@ -627,7 +651,6 @@ class Application : public EventCallbacks
         // Draw the box using GLSL.
         prog->bind();
 
-        V = mycam.process(frametime);
         // send the matrices to the shaders
         glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
         glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
@@ -635,7 +658,7 @@ class Application : public EventCallbacks
         glBindVertexArray(VertexArrayID);
 
 		
-		if (glfwGetTime() > 12) playGame = 1;
+		if (glfwGetTime() > 16) playGame = 1;
 
 		        if (playGame)
         {

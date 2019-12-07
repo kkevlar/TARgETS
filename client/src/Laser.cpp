@@ -58,7 +58,7 @@ void Laser::init(std::shared_ptr<Program>& laserprog)
 		strcpy(filepath, str.c_str());
 		unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
 		glGenTextures(1, &Texture);
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -70,7 +70,7 @@ void Laser::init(std::shared_ptr<Program>& laserprog)
 		GLuint Tex1Location = glGetUniformLocation(
                     laserprog->pid, "laser_tex");  // tex, tex2... sampler in
                                                    // the fragment shader
-		glUniform1i(Tex1Location, 2);
+		glUniform1i(Tex1Location, 3);
 }
 
 void Laser::draw(std::shared_ptr<Program>& laserprog, glm::mat4 P, glm::mat4 V)

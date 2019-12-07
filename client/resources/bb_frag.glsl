@@ -55,7 +55,7 @@ tcol.rgb *= (diffuse_factor1 + ambient_factor);
 tcol.r = clamp(tcol.r,0,1);
 tcol.g = clamp(tcol.g,0,1);
 tcol.b = clamp(tcol.b,0,1);
-//tcol += vec3(1,1,1) * clamp(spec_factor1,0,1);
+tcol.rgb += vec3(1,1,1) * clamp(spec_factor1,0,1);
 
 color = tcol;
 

@@ -12,7 +12,7 @@
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 
-Billboard::Billboard(){    myCubeDim = 16;
+Billboard::Billboard(){    myCubeDim = 32;
 }
 
   static inline float map(
@@ -141,8 +141,8 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
             cube.source.pos.x = map(rand() % 1000, 0, 1000, -100, 100);
             cube.source.pos.y = map(rand() % 1000, 0, 1000, -100, 100);
 					  
-            cube.phase = (/*1.0f-*/ length(glm::vec2(cube.target.pos.x, cube.target.pos.y))) * 0.5;
-            cube.phase += map(rand() % 1000, 0, 1000, -0.1, 0.1);
+            cube.phase = (1.0f- length(glm::vec2(cube.target.pos.x, cube.target.pos.y))) * 0.5;
+            cube.phase += map(rand() % 1000, 0, 1000, -0.05, 0.05);
             cube.phase += map(rand() % 1000, 0, 1000, 0, 0.05);
             cube.phase += 0.4;
             cube.resetInterp();
@@ -199,11 +199,11 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
     glUniformMatrix4fv(bbprog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
 
 
-	if (glfwGetTime() < 10 )
+	if (glfwGetTime() < 12 )
     for (int i = 0; i < bbCubes.size(); i++)
     {
         BBCube& cube = bbCubes.data()[i];
-        cube.interp += frametime*0.075;
+        cube.interp += frametime*0.045;
         cube.interpBetween();
         glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
                     cube.texOffset.y);
@@ -214,7 +214,7 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
         for (int i = 0; i < bbCubesPost.size(); i++)
         {
             BBCube& cube = bbCubesPost.data()[i];
-            cube.interp += frametime * 0.2;
+            cube.interp += frametime * 0.15;
             cube.interpBetween();
             glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
                         cube.texOffset.y);
