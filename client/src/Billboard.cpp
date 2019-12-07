@@ -12,7 +12,7 @@
 #include "Cube.h"
 #include "stb_image.h"
 
-Billboard::Billboard(){    myCubeDim = 10;
+Billboard::Billboard(){    myCubeDim = 10;}
 
 static inline float map(
     float value, float min1, float max1, float min2, float max2)
