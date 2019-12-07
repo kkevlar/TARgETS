@@ -551,7 +551,7 @@ class Application : public EventCallbacks
                 if (!cube->hit && cube->show && rmd && !lastRMouse)
                 {
                     if (glm::distance(cube->postInterp.pos,
-                                      myCursor.result.pos) < 10)
+                                      myCursor.result.pos) < 2)
                     {
                         vec3 spos = cube->postInterp.pos;
                         spos = 1.1f * (cube->postInterp.pos - vec3(0, -8, 0));

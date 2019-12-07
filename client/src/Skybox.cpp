@@ -13,15 +13,17 @@
 
 static float piconst = 103993.0f / 33102.0f;
 
-#define Y_LOW ((float) -0.25)
-#define Y_HIGH ((float) 0.25)
+#define Y_LOW ((float) -0.50)
+#define Y_HIGH ((float) 0.50)
+#define TEX_LOW (0)
+#define TEX_HIGH (1)
 
 void Skybox::init(std::shared_ptr<Program>& skyboxprog)
 {
     std::vector<float> cyl_vertex = std::vector<float>();
     std::vector<float> cyl_tex_coords = std::vector<float>();
 
-    int samples = 3;
+    int samples = 256;
     float delta = 2 * piconst * (1.0 / samples);
     int i = 0;
     for (i = 0; i < samples; i++)
@@ -33,14 +35,14 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_LOW);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(0); //i / ((float) samples));
-        cyl_tex_coords.push_back(0);
+        cyl_tex_coords.push_back((i) / ((float) samples)); //i / ((float) samples));
+        cyl_tex_coords.push_back(TEX_LOW);
 
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(0);
-        cyl_tex_coords.push_back(1);//i / ((float) samples));
+        cyl_tex_coords.push_back((i) / ((float) samples));
+        cyl_tex_coords.push_back(TEX_HIGH);//i / ((float) samples));
 
         angle = delta * (i + 1);
         x = cos(angle);
@@ -49,20 +51,20 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);
-        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
+        cyl_tex_coords.push_back((i+1) / ((float) samples));
+        cyl_tex_coords.push_back(TEX_HIGH);//(i+1) / ((float) samples));
 
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_LOW);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);
-        cyl_tex_coords.push_back(0);//(i+1) / ((float) samples));
+        cyl_tex_coords.push_back((i+1) / ((float) samples));
+        cyl_tex_coords.push_back(TEX_LOW);//(i+1) / ((float) samples));
 
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);
-        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
+        cyl_tex_coords.push_back((i+1) / ((float) samples));
+        cyl_tex_coords.push_back(TEX_HIGH);//(i+1) / ((float) samples));
 
         angle = delta * i;
         x = cos(angle);
@@ -71,8 +73,8 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_LOW);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(0);
-        cyl_tex_coords.push_back(0);//i / ((float) samples));
+        cyl_tex_coords.push_back((i) / ((float) samples));
+        cyl_tex_coords.push_back(TEX_LOW);//i / ((float) samples));
     }
 
     // generate the VAO
@@ -102,7 +104,7 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
 
     glUseProgram(skyboxprog->pid);
 
-std::string str = resourceDirectory + "/sb.jpg";
+std::string str = resourceDirectory + "/8k_stars_milky_way.jpg";
     strcpy(filepath, str.c_str());
     unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
     glGenTextures(1, &Texture);
@@ -141,7 +143,7 @@ void Skybox::draw(std::shared_ptr<Program>& skyboxprog,
     glUniformMatrix4fv(skyboxprog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
     glUniformMatrix4fv(skyboxprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
-    glDrawArrays(GL_TRIANGLES, 0, 128 * 6);
+    glDrawArrays(GL_TRIANGLES, 0, 256 * 6);
 
     glBindVertexArray(0);
 
