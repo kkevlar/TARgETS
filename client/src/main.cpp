@@ -369,11 +369,11 @@ class Application : public EventCallbacks
         bbprog->addUniform("campos");
         bbprog->addUniform("light1pos");
         bbprog->addUniform("texOffset");
-        bbprog->addUniform("title_tex");
         bbprog->addUniform("normal_map_tex");
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
+        bbprog->addAttribute("texCoordsOffset");
 
         skyboxprog = std::make_shared<Program>();
         skyboxprog->setVerbose(true);
