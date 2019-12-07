@@ -18,6 +18,13 @@ class Billboard
    private:
     GLuint VertexArrayID;
     GLuint PositionBufferId, NormBufferId, TexCoordsBufferId, IndexBufferId;
+    GLuint IBID_Poses_Start;
+    GLuint IBID_Poses_Mid;
+    GLuint IBID_Poses_End;
+    GLuint IBID_TexCoordsOffset;
+    GLuint IBID_Phase1;
+    GLuint IBID_Phase2;
+
     GLuint Texture;
     int myCubeDim;
     std::vector<BBCube> bbCubes;
