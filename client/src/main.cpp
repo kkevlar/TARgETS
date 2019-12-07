@@ -1,11 +1,11 @@
 #include <glad/glad.h>
 #include <algorithm>
 #include <iostream>
-#include <vector>
 #include <thread>
+#include <vector>
 
-#include "Cube.h"
 #include "Billboard.h"
+#include "Cube.h"
 #include "GLSL.h"
 #include "MatrixStack.h"
 #include "Program.h"
@@ -50,14 +50,7 @@ class camera
     glm::mat4 process(double ftime)
     {
         float speed = 0;
-        if (w == 1)
-        {
-            speed = 1 * ftime;
-        }
-        else if (s == 1)
-        {
-            speed = -1 * ftime;
-        }
+      
         float yangle = 0;
         if (a == 1)
             yangle = -1 * ftime;
@@ -102,6 +95,7 @@ class Application : public EventCallbacks
     MessageContext *msg_context;
     CollisionHandler collision;
     Billboard billboard;
+    bool playGame = 0;
 
     std::vector<CylCoords> cursors;
 
@@ -150,7 +144,6 @@ class Application : public EventCallbacks
         }
         if (key == GLFW_KEY_N && action == GLFW_PRESS) kn = 1;
         if (key == GLFW_KEY_N && action == GLFW_RELEASE) kn = 0;
-       
     }
 
     // callback for the mouse when clicked move the triangle when helper
@@ -369,58 +362,22 @@ class Application : public EventCallbacks
         bbprog->addUniform("P");
         bbprog->addUniform("V");
         bbprog->addUniform("M");
-        bbprog->addUniform("camPos");
+        bbprog->addUniform("campos");
+        bbprog->addUniform("light1pos");
+        bbprog->addUniform("title_tex");
+        bbprog->addUniform("normal_map_tex");
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
     }
 
-    /****DRAW
-    This is the most important function in your program - this is where you
-    will actually issue the commands to draw any geometry you have set up to
-    draw
-    ********/
-    void render()
+    void game_render(double frametime, glm::mat4 P, glm::mat4 V)
     {
-        double frametime = get_last_elapsed_time();
         // Get current frame buffer size.
         int width, height;
+        glm::mat4 M;
+
         glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
-        float aspect = width / (float)height;
-        glViewport(0, 0, width, height);
-        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        // Clear framebuffer.
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Create the matrix stacks - please leave these alone for now
-
-        glm::mat4 V, M, P;  // View, Model and Perspective matrix
-        V = glm::mat4(1);
-        M = glm::mat4(1);
-        // Apply orthographic projection....
-        P = glm::perspective((float)(3.14159 / 4.),
-                             (float)((float)width / (float)height), 0.1f,
-                             1000.0f);  // so much type casting... GLM metods
-                                        // are quite funny ones
-
-        // animation with the model matrix:
-        static float w = 0.0;
-        w += 0.03;  // rotation angle
-        static float t = 0;
-        t += 0.01;
-        float trans = 0;  // sin(t) * 2;
-        glm::mat4 T = glm::mat4(1.0f);
-
-        // Draw the box using GLSL.
-        prog->bind();
-
-        V = mycam.process(frametime);
-        // send the matrices to the shaders
-        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
-        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-
-        glBindVertexArray(VertexArrayID);
-
         double xpos, ypos;
 
         glfwGetCursorPos(windowManager->getHandle(), &xpos, &ypos);
@@ -605,6 +562,9 @@ class Application : public EventCallbacks
 
         msg_context->mutex_cursors.lock();
 
+        static float w = 0.0;
+        w += frametime;
+
         int win = msg_context->winning_pid;
         if (win >= 0 && win <= PLAYER_CURSOR_COUNT)
         {
@@ -626,8 +586,65 @@ class Application : public EventCallbacks
 
         msg_context->mutex_cursors.unlock();
         glowprog->unbind();
+    }
 
-        billboard.draw(bbprog, P, V); 
+    /****DRAW
+    This is the most important function in your program - this is where you
+    will actually issue the commands to draw any geometry you have set up to
+    draw
+    ********/
+    void render()
+    {
+        double frametime = get_last_elapsed_time();
+        // Get current frame buffer size.
+        int width, height;
+        glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
+        float aspect = width / (float)height;
+        glViewport(0, 0, width, height);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        // Clear framebuffer.
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Create the matrix stacks - please leave these alone for now
+
+        glm::mat4 V, M, P;  // View, Model and Perspective matrix
+        V = glm::mat4(1);
+        M = glm::mat4(1);
+        // Apply orthographic projection....
+        P = glm::perspective((float)(3.14159 / 4.),
+                             (float)((float)width / (float)height), 0.1f,
+                             1000.0f);  // so much type casting... GLM metods
+                                        // are quite funny ones
+
+        // animation with the model matrix:
+
+        static float t = 0;
+        t += 0.01;
+        float trans = 0;  // sin(t) * 2;
+        glm::mat4 T = glm::mat4(1.0f);
+
+        // Draw the box using GLSL.
+        prog->bind();
+
+        V = mycam.process(frametime);
+        // send the matrices to the shaders
+        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+
+        glBindVertexArray(VertexArrayID);
+
+		
+		if (glfwGetTime() > 50) playGame = 1;
+
+		        if (playGame)
+        {
+            game_render(frametime, P, V);
+        }
+        else
+        {
+            billboard.draw(bbprog, mycam.pos, frametime, P, V);
+        }
+
     }
 };
 //******************************************************************************************

@@ -16,6 +16,8 @@
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Shot.cpp" />
     <ClCompile Include="ShotManager.cpp" />
+    <ClCompile Include="Billboard.cpp" />
+    <ClCompile Include="Laser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Program.h" />
@@ -30,6 +32,8 @@
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Shot.h" />
     <ClInclude Include="ShotManager.h" />
+    <ClInclude Include="Billboard.h" />
+    <ClInclude Include="Laser.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">
@@ -43,7 +47,7 @@
     <None Include="..\resources\shape_vertex.glsl" />
     <None Include="..\resources\glow_fragment.glsl" />
     <None Include="..\resources\glow_vertex.glsl" />
-    <None Include="..\resources\test_bb_fragment.glsl" />
-    <None Include="..\resources\test_bb_vertex.glsl" />
+    <None Include="..\resources\bb_frag.glsl" />
+    <None Include="..\resources\bb_vertex.glsl" />
   </ItemGroup>
 </Project>

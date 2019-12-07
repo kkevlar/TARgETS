@@ -6,7 +6,7 @@
 #include "GLSL.h"
 #include "Program.h"
 
-class Billboard
+class Laser
 {
    private:
     GLuint VertexArrayID;
@@ -15,9 +15,5 @@ class Billboard
 
    public:
     void init(std::shared_ptr<Program>& bbprog);
-    void draw(std::shared_ptr<Program>& bbprog,
-              glm::vec3 campos,
-              double frametime,
-              glm::mat4 P,
-              glm::mat4 V);
+    void draw(std::shared_ptr<Program>& bbprog, glm::mat4 P, glm::mat4 V);
 };

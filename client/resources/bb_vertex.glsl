@@ -15,4 +15,6 @@ void main()
 	vec4 pos = M * vec4(vertPos,1.0);
 	gl_Position = P * V * pos;
 	vertex_tex = vertTex;	
+
+	vertex_pos = pos.xyz;
 }

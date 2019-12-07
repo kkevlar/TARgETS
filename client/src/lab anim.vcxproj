@@ -20,8 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ext\glad\src\glad.c" />
+    <ClCompile Include="Billboard.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="GLSL.cpp" />
+    <ClCompile Include="Laser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixStack.cpp" />
     <ClCompile Include="Program.cpp" />
@@ -34,9 +36,11 @@
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Billboard.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="GLSL.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="Laser.h" />
     <ClInclude Include="MatrixStack.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="Program.h" />
@@ -48,14 +52,14 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\resources\bb_frag.glsl" />
+    <None Include="..\resources\bb_vertex.glsl" />
     <None Include="..\resources\glow_fragment.glsl" />
     <None Include="..\resources\glow_vertex.glsl" />
     <None Include="..\resources\shader_fragment.glsl" />
     <None Include="..\resources\shader_vertex.glsl" />
     <None Include="..\resources\shape_fragment.glsl" />
     <None Include="..\resources\shape_vertex.glsl" />
-    <None Include="..\resources\test_bb_fragment.glsl" />
-    <None Include="..\resources\test_bb_vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

@@ -1,5 +1,5 @@
 
-#include "Billboard.h"
+#include "Laser.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -7,16 +7,15 @@
 #include <string>
 #include <vector>
 #include "GLSL.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void Billboard::init(std::shared_ptr<Program>& bbprog)
+void Laser::init(std::shared_ptr<Program>& laserprog)
 {
 		glm::vec3 rect_pos[4];
 		glm::vec2 rect_tex[4];
 		glm::vec3 rect_norm[4];
 		int rect_indi[6] = {0,1,2,0,2,3};
-		rect_pos[0] = glm::vec3(0, 0, 0);		rect_pos[1] = glm::vec3(1, 0, 0);		rect_pos[2] = glm::vec3(1, 0.5, 0);		rect_pos[3] = glm::vec3(0, 0.5, 0);
+		rect_pos[0] = glm::vec3(-1, 0, 0);		rect_pos[1] = glm::vec3(1, 0, 0);		rect_pos[2] = glm::vec3(1, -1, 25);		rect_pos[3] = glm::vec3(-1, -1, 25);
 		rect_norm[0] = glm::vec3(0, 0, 1);		rect_norm[1] = glm::vec3(0, 0, 1);		rect_norm[2] = glm::vec3(0, 0, 1);		rect_norm[3] = glm::vec3(0, 0, 1);	
 		rect_tex[0] = glm::vec2(0, 0);			rect_tex[1] = glm::vec2(1, 0);			rect_tex[2] = glm::vec2(1, 1);			rect_tex[3] = glm::vec2(0, 1);		
 		
@@ -53,13 +52,13 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
 
     std::string resourceDirectory = "../resources";
     
-		glUseProgram(bbprog->pid);
+		glUseProgram(laserprog->pid);
 
-    std::string str = resourceDirectory + "/black.png";
+    std::string str = resourceDirectory + "/laser.png";
 		strcpy(filepath, str.c_str());
 		unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
 		glGenTextures(1, &Texture);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -68,72 +67,41 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
    
-		GLuint Tex1Location = glGetUniformLocation(bbprog->pid, "title_tex");//tex, tex2... sampler in the fragment shader
-		glUniform1i(Tex1Location, 0);
-
-		 str = resourceDirectory + "/NormalMap.png";
-                strcpy(filepath, str.c_str());
-               data =
-                    stbi_load(filepath, &width, &height, &channels, 4);
-                glGenTextures(1, &Texture);
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, Texture);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                                GL_MIRRORED_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                                GL_MIRRORED_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                                GL_NEAREST);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                             GL_RGBA, GL_UNSIGNED_BYTE, data);
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                GLuint Tex2Location = glGetUniformLocation(
-                    bbprog->pid, "normal_map_tex");  // tex, tex2... sampler in the
-                                                // fragment shader
-                glUniform1i(Tex2Location, 1);
+		GLuint Tex1Location = glGetUniformLocation(
+                    laserprog->pid, "laser_tex");  // tex, tex2... sampler in
+                                                   // the fragment shader
+		glUniform1i(Tex1Location, 2);
 }
 
-void Billboard::draw(std::shared_ptr<Program>& bbprog, glm::vec3 campos, double frametime, glm::mat4 P, glm::mat4 V)
+void Laser::draw(std::shared_ptr<Program>& laserprog, glm::mat4 P, glm::mat4 V)
 {
-        bbprog->bind();
+    laserprog->bind();
 
 
 		glBindVertexArray(VertexArrayID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
-		
-
-		glUniform3f(bbprog->getUniform("campos"), campos.x,
-                           campos.y, campos.z);
-                static float w = 0;
-                w += frametime ;
-
-                glm::vec4 l1p = glm::vec4(10, 0, 0, 1);
-                l1p = glm::rotate(glm::mat4(1), w, glm::vec3(0, 1, 0)) * l1p;
-
-                glUniform3f(bbprog->getUniform("light1pos"), l1p.x, l1p.y, l1p.z);
-
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, Texture);
 
     glm::mat4 Vi = glm::transpose(V);
     Vi[0][3] = 0;
     Vi[1][3] = 0;
     Vi[2][3] = 0;
 
-
-
-            glm::mat4 TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f,0.0f, -1.5f));
-            glm::mat4 M = TransZ * Vi ;
-                    glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-        glUniformMatrix4fv(bbprog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
-        glUniformMatrix4fv(bbprog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+            glm::mat4 TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f,-0.5f, -1.5f));
+            glm::mat4 M = TransZ * Vi;
+            glUniformMatrix4fv(laserprog->getUniform("M"), 1, GL_FALSE,
+                               &M[0][0]);
+            glUniformMatrix4fv(laserprog->getUniform("P"), 1, GL_FALSE,
+                               &P[0][0]);
+            glUniformMatrix4fv(laserprog->getUniform("V"), 1, GL_FALSE,
+                               &V[0][0]);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 
 		glBindVertexArray(0);		
 
-        bbprog->unbind();
+        laserprog->unbind();
 }
 
 
