@@ -9,7 +9,7 @@ void main()
 {
 
 vec2 vt = vertex_tex;
-//vt.y = 1- vt.y;
+vt.y = 1- vt.y;
 
 
 vec4 tcol = texture(skybox_texture, vt);

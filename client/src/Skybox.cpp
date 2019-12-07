@@ -13,8 +13,8 @@
 
 static float piconst = 103993.0f / 33102.0f;
 
-#define Y_LOW ((float) -0.5)
-#define Y_HIGH ((float) 0.5)
+#define Y_LOW ((float) -0.25)
+#define Y_HIGH ((float) 0.25)
 
 void Skybox::init(std::shared_ptr<Program>& skyboxprog)
 {
@@ -39,8 +39,8 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);//i / ((float) samples));
         cyl_tex_coords.push_back(0);
+        cyl_tex_coords.push_back(1);//i / ((float) samples));
 
         angle = delta * (i + 1);
         x = cos(angle);
@@ -49,20 +49,20 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
         cyl_tex_coords.push_back(1);
+        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
 
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_LOW);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(0);//(i+1) / ((float) samples));
         cyl_tex_coords.push_back(1);
+        cyl_tex_coords.push_back(0);//(i+1) / ((float) samples));
 
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_HIGH);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
         cyl_tex_coords.push_back(1);
+        cyl_tex_coords.push_back(1);//(i+1) / ((float) samples));
 
         angle = delta * i;
         x = cos(angle);
@@ -71,8 +71,8 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
         cyl_vertex.push_back(x);
         cyl_vertex.push_back(Y_LOW);
         cyl_vertex.push_back(y);
-        cyl_tex_coords.push_back(0);//i / ((float) samples));
         cyl_tex_coords.push_back(0);
+        cyl_tex_coords.push_back(0);//i / ((float) samples));
     }
 
     // generate the VAO
@@ -89,7 +89,7 @@ void Skybox::init(std::shared_ptr<Program>& skyboxprog)
     glGenBuffers(1, &TexCoordsBufferId);
     glBindBuffer(GL_ARRAY_BUFFER, TexCoordsBufferId);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cyl_vertex.size(),
-                 cyl_vertex.data(), GL_STATIC_DRAW);
+                 cyl_tex_coords.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
