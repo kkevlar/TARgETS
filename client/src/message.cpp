@@ -38,7 +38,7 @@ static inline float map(
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-#define FLOAT_DEGREES 10000
+#define FLOAT_DEGREES ((float)10000)
 
 int assignBytesFromNum(uint8_t *buf, int num, int bytes)
 {
@@ -52,7 +52,7 @@ int assignBytesFromNum(uint8_t *buf, int num, int bytes)
 int assignBytesFromFloat(uint8_t *buf, float num, int bytes)
 {
     buf[0] = (!(!(num < 0)));
-    assignBytesFromNum(buf + 1, abs(num) * (FLOAT_DEGREES + 0.0f), bytes - 1);
+    assignBytesFromNum(buf + 1, glm::abs(num) * (FLOAT_DEGREES + 0.0f), bytes - 1);
     return bytes;
 }
 

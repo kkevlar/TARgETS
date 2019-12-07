@@ -2,3 +2,5 @@
 **/bin/
 **/Debug/
 
+client/build/
+*.swp

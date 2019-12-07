@@ -1,3 +1,6 @@
+
+#ifdef _WIN32
+
 #define WIN32_LEAN_AND_MEAN
 
 #include <stdio.h>
@@ -241,3 +244,189 @@ void clientend()
     closesocket(ConnectSocket);
     WSACleanup();
 }
+
+#else
+
+#warning "Non-windows networking code "
+
+#include <stdio.h>
+#include <sys/socket.h> 
+#include <arpa/inet.h> 
+#include <unistd.h> 
+#include <stdlib.h>
+#include <iostream>
+#include <mutex>
+
+#include <string.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "message.h"
+#include "webclient.h"
+
+#define RECV_BUFLEN 512
+#define SEND_BUFLEN (512 * 16)
+
+#define DEFAULT_PORT "25567"
+#define PORT 25567
+
+char recvbuf[RECV_BUFLEN];
+char sendbuf[SEND_BUFLEN];
+int recvbuflen = RECV_BUFLEN;
+    int sock = 0, valread;
+    int iResult = 0;
+
+    struct sockaddr_in serv_addr;
+
+int clientbegin(MessageContext* context)
+{
+    initMessageHandler(context);
+
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+     if (inet_pton(AF_INET, "127.0.0.1"/*"104.248.79.114"*/, &serv_addr.sin_addr) <= 0)
+     {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+
+    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
+
+    return 0;
+}
+
+int sendbufindex = 0;
+std::mutex mtx_write;
+
+void clientMsgWrite(MessageId code, uint8_t* data, int len)
+{
+    uint8_t sml_len = len;
+    clientwrite(&code, 1);
+    clientwrite(&sml_len, 1);
+    clientwrite(data, len);
+}
+
+void clientwrite(uint8_t* bytes, int length)
+{
+    mtx_write.lock();
+    for (int i = 0; i < length && sendbufindex < sizeof(sendbuf) / sizeof(char);
+         i++, sendbufindex++)
+    {
+        sendbuf[sendbufindex] = bytes[i];
+    }
+    mtx_write.unlock();
+}
+
+void clientflush()
+{
+    int big = sizeof(sendbuf);
+    int amount = 0;
+
+    if (sendbufindex == 0) return;
+
+    mtx_write.lock();
+    int sz = sendbufindex;
+    amount = sz;
+    if (sz > big) amount = big;
+
+    if (amount == 0)
+    {
+        goto end;
+    }
+
+    send(sock, sendbuf, amount, 0);
+
+end:
+    sendbufindex = 0;
+    mtx_write.unlock();
+}
+
+int code = 0;
+int length = -1;
+int bufindex = 0;
+uint8_t buf[256];
+
+void clientread()
+{
+
+    iResult = read(sock, recvbuf, 1024);
+
+    if (iResult > 0)
+    {
+        for (int i = 0; i < iResult; i++)
+        {
+            if (code == 0)
+            {
+                code = recvbuf[i];
+                bufindex = 0;
+                length = -1;
+            }
+            else if (length == -1)
+            {
+                length = recvbuf[i];
+                bufindex = 0;
+            }
+            else if (bufindex < length)
+            {
+                buf[bufindex++] = recvbuf[i];
+            }
+            else
+            {
+                handleMessage(code, buf, length);
+                code = 0;
+                length = -1;
+                bufindex = 0;
+                i--;
+            }
+        }
+    }
+    else if (iResult == 0)
+        printf("Connection closed\n");
+    else
+        printf("recv failed with error: \n");
+}
+
+bool keepReading;
+
+void repeatedRead()
+{
+    keepReading = 1;
+    while (keepReading)
+    {
+        clientread();
+        clientflush();
+    }
+}
+
+void stopRepeatedRead()
+{
+    keepReading = 0;
+}
+
+bool keepWriting;
+
+void repeatedWrite()
+{
+    keepWriting = 1;
+    while (keepWriting)
+    {
+        clientflush();
+    }
+}
+
+void stopRepeatedWrite()
+{
+    keepWriting = 0;
+}
+
+#endif

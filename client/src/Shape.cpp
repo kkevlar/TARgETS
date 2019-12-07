@@ -18,7 +18,7 @@ void Shape::loadMesh(const string &meshName, string *mtlpath, unsigned char *(lo
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> objMaterials;
 	string errStr;
-	bool rc = FALSE;
+	bool rc = 0;
 	if (mtlpath)
 		rc = tinyobj::LoadObj(shapes, objMaterials, errStr, meshName.c_str(), mtlpath->c_str());
 	else

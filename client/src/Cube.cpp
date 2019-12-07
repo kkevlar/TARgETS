@@ -8,7 +8,7 @@
 #include <vector>
 #include "GLSL.h"
 #include "message.h"
-#include "program.h"
+#include "Program.h"
 #include "webclient.h"
 
 #define PI_CONST ((float)(103993.0f / 33102.0f))
@@ -135,11 +135,11 @@ void Target::sendModelMatrix(std::shared_ptr<Program> prog,
 {
     cached_no_scale = postInterp.calc_no_scale();
 
-    if (parent >= 0)
+    /*if (parent >= 0)
     {
         cached_no_scale =
             elements.data()[parent].cached_no_scale * cached_no_scale;
-    }
+    }*/
 
     glm::mat4 M = parentM * postInterp.calc_scale(cached_no_scale);
 

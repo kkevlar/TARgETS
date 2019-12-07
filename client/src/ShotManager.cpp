@@ -3,6 +3,7 @@
 #include "ShotManager.h"
 #include "message.h"
 #include "webclient.h"
+#include <iostream>
 
 #define MAX_SHOTS_PER_PLAYER 32
 

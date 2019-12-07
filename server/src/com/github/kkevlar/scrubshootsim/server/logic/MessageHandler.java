@@ -33,6 +33,8 @@ public class MessageHandler
         int index = 0xFF & m.data[1];
         index |= (0xFF & m.data[2]) << 8;
 
+        if(index >= 0 && index < m.context.getGame().getBoxes().length)
+        {
         m.context.getGame().getBoxes()[index].visible = false;
 
         ToClientMsg msg = new ToClientMsg();
@@ -42,6 +44,10 @@ public class MessageHandler
         m.context.getGame().getServer().sendToAll(msg);
         m.context.getPlayer().score++;
         m.context.getGame().checkSendWinningScore(m.context.getPlayer());
+        }
+        else{
+       System.err.println("Client tried to remove an invalid box :(\n"); 
+        }
 
     }
 

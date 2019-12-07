@@ -4,7 +4,8 @@
 #include <memory>
 #include <vector>
 #include "GLSL.h"
-#include "program.h"
+#include "Program.h"
+
 
 class ColorList
 {

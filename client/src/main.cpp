@@ -2,8 +2,10 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <thread>
 
 #include "Cube.h"
+#include "Billboard.h"
 #include "GLSL.h"
 #include "MatrixStack.h"
 #include "Program.h"
@@ -99,6 +101,7 @@ class Application : public EventCallbacks
     Shape shape;
     MessageContext *msg_context;
     CollisionHandler collision;
+    Billboard billboard;
 
     std::vector<CylCoords> cursors;
 
@@ -272,6 +275,8 @@ class Application : public EventCallbacks
                      cube_elements, GL_STATIC_DRAW);
 
         glBindVertexArray(0);
+
+        billboard.init(bbprog);
     }
 
     // General OGL initialization - set OGL state here
@@ -352,8 +357,8 @@ class Application : public EventCallbacks
 
         bbprog = std::make_shared<Program>();
         bbprog->setVerbose(true);
-        bbprog->setShaderNames(resourceDirectory + "/test_bb_vertex.glsl",
-                               resourceDirectory + "/test_bb_fragment.glsl");
+        bbprog->setShaderNames(resourceDirectory + "/bb_vertex.glsl",
+                               resourceDirectory + "/bb_frag.glsl");
         if (!bbprog->init())
         {
             std::cerr << "One or more shaders failed to compile... exiting!"
@@ -365,8 +370,6 @@ class Application : public EventCallbacks
         bbprog->addUniform("V");
         bbprog->addUniform("M");
         bbprog->addUniform("camPos");
-        bbprog->addUniform("bonuscolor");
-
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
@@ -407,13 +410,6 @@ class Application : public EventCallbacks
         t += 0.01;
         float trans = 0;  // sin(t) * 2;
         glm::mat4 T = glm::mat4(1.0f);
-        glm::mat4 RotateY =
-            glm::rotate(glm::mat4(1.0f), w, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 TransZ =
-            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0));
-        glm::mat4 TransX =
-            glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.0f, 0.0));
-        glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
         // Draw the box using GLSL.
         prog->bind();
@@ -422,7 +418,6 @@ class Application : public EventCallbacks
         // send the matrices to the shaders
         glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
         glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 
         glBindVertexArray(VertexArrayID);
 
@@ -632,22 +627,7 @@ class Application : public EventCallbacks
         msg_context->mutex_cursors.unlock();
         glowprog->unbind();
 
-        bbprog->bind();
-
-       /* mat4 Vi = glm::transpose(V);
-        Vi[0][3] = 0;
-        Vi[1][3] = 0;
-        Vi[2][3] = 0;
-
-        M = mat4(1);
-
-        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
-        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-
-        bb.draw(bbprog); */
-
-        bbprog->unbind();
+        billboard.draw(bbprog, P, V); 
     }
 };
 //******************************************************************************************

@@ -78,7 +78,7 @@ if(WIN32)
   target_link_libraries(${CMAKE_PROJECT_NAME} opengl32.lib)
 else()
   # Enable all pedantic warnings.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Wextra -O0 -g -pthread")
 
   if(APPLE)
     # Add required frameworks for GLFW.
