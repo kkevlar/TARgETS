@@ -12,7 +12,7 @@
 #include "Cube.h"
 #include "stb_image.h"
 
-Billboard::Billboard() { myCubeDim = 3; }
+Billboard::Billboard() { myCubeDim = 5; }
 
 static inline float map(
     float value, float min1, float max1, float min2, float max2)
@@ -135,7 +135,7 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
     {
         glEnableVertexAttribArray(position_loc +i);
         glVertexAttribPointer(position_loc+i , 3, GL_FLOAT, GL_FALSE,
-                              sizeof(float) * 3, (void*)(sizeof(float)*3 )),
+                              sizeof(float) * 3, 0),
         glVertexAttribDivisor(position_loc+i, 1);
     }
 

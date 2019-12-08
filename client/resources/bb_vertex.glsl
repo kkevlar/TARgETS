@@ -16,8 +16,10 @@ void main()
 
 	vertex_normal = vec4(M * vec4(vertNor,0.0)).xyz;
 	vec4 pos = M * vec4(vertPos,1.0);
-		
-	pos += vec4(Instance, 0.0f);
+	
+	vec3 imid = Instance * 1.1f;
+
+	pos += vec4(imid, 0.0f);
 
 	gl_Position = P * V * pos;
 	vertex_tex = vertTex;	
