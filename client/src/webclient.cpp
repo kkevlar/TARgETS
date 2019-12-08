@@ -54,7 +54,7 @@ int __cdecl clientbegin(MessageContext* context)
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
-    iResult = getaddrinfo("localhost" /*"kevinkellar.com"*/, DEFAULT_PORT,
+    iResult = getaddrinfo(/*"localhost"*/ "kevinkellar.com", DEFAULT_PORT,
                           &hints, &result);
     if (iResult != 0)
     {
@@ -290,7 +290,7 @@ int clientbegin(MessageContext* context)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-     if (inet_pton(AF_INET, "127.0.0.1"/*"104.248.79.114"*/, &serv_addr.sin_addr) <= 0)
+     if (inet_pton(AF_INET, /*"127.0.0.1"*/"104.248.79.114", &serv_addr.sin_addr) <= 0)
      {
         printf("\nInvalid address/ Address not supported \n");
         return -1;

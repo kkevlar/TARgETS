@@ -12,7 +12,7 @@
 #include "Cube.h"
 #include "stb_image.h"
 
-Billboard::Billboard() { myCubeDim = 10; }
+Billboard::Billboard() { myCubeDim = 3; }
 
 static inline float map(
     float value, float min1, float max1, float min2, float max2)
@@ -226,28 +226,13 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
 
     glm::mat4 M;
 
-    if (glfwGetTime() < 12)
-    {
         /*glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
                     cube.texOffset.y);*/
         M = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
         glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0,
                                 bbCubes.size());
-    }
-    else
-        for (int i = 0; i < bbCubesPost.size(); i++)
-        {
-            BBCube& cube = bbCubesPost.data()[i];
-            cube.interp += frametime * 0.15;
-            cube.interpBetween();
-            glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
-                        cube.texOffset.y);
-            // cube.sendModelMatrix(bbprog, glm::mat4(1));
-            M = glm::scale(glm::mat4(1), cube.source.scale);
-            glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
-        }
+   
 
     glBindVertexArray(0);
 
