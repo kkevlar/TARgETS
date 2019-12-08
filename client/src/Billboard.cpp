@@ -128,15 +128,15 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
     glGenBuffers(1, &IBID_Poses_Mid);
     glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_Mid);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_mid.size(),
-                 poses_mid.data(), GL_DYNAMIC_DRAW);
+                 poses_mid.data(), GL_STATIC_DRAW);
     int position_loc = glGetAttribLocation(bbprog->pid, "Instance");
 
-    /*for (int i = 0; i < bbCubes.size(); i++)*/
+    for (int i = 0; i < bbCubes.size(); i++)
     {
-        glEnableVertexAttribArray(position_loc );
-        glVertexAttribPointer(position_loc , 3, GL_FLOAT, GL_FALSE,
+        glEnableVertexAttribArray(position_loc +i);
+        glVertexAttribPointer(position_loc+i , 3, GL_FLOAT, GL_FALSE,
                               sizeof(float) * 3, (void*)(sizeof(float)*3 )),
-        glVertexAttribDivisor(position_loc, 1);
+        glVertexAttribDivisor(position_loc+i, 1);
     }
 
     // indices
@@ -231,7 +231,7 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
         /*glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
                     cube.texOffset.y);*/
         M = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
-        glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0,
                                 bbCubes.size());
     }
@@ -245,7 +245,7 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
                         cube.texOffset.y);
             // cube.sendModelMatrix(bbprog, glm::mat4(1));
             M = glm::scale(glm::mat4(1), cube.source.scale);
-            glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &P[0][0]);
+            glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
         }
 
