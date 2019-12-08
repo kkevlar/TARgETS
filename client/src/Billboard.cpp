@@ -45,7 +45,7 @@ std::shared_ptr<Program> Billboard::initShader(std::string resourceDirectory)
     bbprog->addAttribute("vertPos");
     bbprog->addAttribute("vertNor");
     bbprog->addAttribute("vertTex");
-    bbprog->addAttribute("Instance");
+    bbprog->addAttribute("InstanceMidPos");
     return bbprog;
 }
 
@@ -157,7 +157,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
     glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_Mid);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_mid.size(),
                  poses_mid.data(), GL_STATIC_DRAW);
-    int position_loc = glGetAttribLocation(bbprog->pid, "Instance");
+    int position_loc = glGetAttribLocation(bbprog->pid, "InstanceMidPos");
 
     for (int i = 0; i < bbCubes.size(); i++)
     {
