@@ -12,7 +12,7 @@
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 
-Billboard::Billboard(){    myCubeDim = 10;
+Billboard::Billboard(){    myCubeDim = 21;
 }
 
   static inline float map(
