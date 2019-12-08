@@ -131,13 +131,12 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
                  poses_mid.data(), GL_DYNAMIC_DRAW);
     int position_loc = glGetAttribLocation(bbprog->pid, "Instance");
 
-    for (int i = 0; i < bbCubes.size(); i++)
+    /*for (int i = 0; i < bbCubes.size(); i++)*/
     {
-        glEnableVertexAttribArray(position_loc + i);
-        glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(float) * 3, (void*)(sizeof(float)*3 * i)),
-           
-        glVertexAttribDivisor(position_loc + i, 1);
+        glEnableVertexAttribArray(position_loc );
+        glVertexAttribPointer(position_loc , 3, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 3, (void*)(sizeof(float)*3 )),
+        glVertexAttribDivisor(position_loc, 1);
     }
 
     // indices
