@@ -12,7 +12,7 @@
 #include "Cube.h"
 #include "stb_image.h"
 
-Billboard::Billboard() { myCubeDim = 5; }
+Billboard::Billboard() { myCubeDim = 128; }
 
 static inline float map(
     float value, float min1, float max1, float min2, float max2)
@@ -22,7 +22,7 @@ static inline float map(
 
 std::shared_ptr<Program> Billboard::initShader(std::string resourceDirectory)
 {
-    std::shared_ptr<Program>  bbprog = std::make_shared<Program>();
+    std::shared_ptr<Program> bbprog = std::make_shared<Program>();
     bbprog->setVerbose(true);
     bbprog->setShaderNames(resourceDirectory + "/bb_vertex.glsl",
                            resourceDirectory + "/bb_frag.glsl");
@@ -35,17 +35,22 @@ std::shared_ptr<Program> Billboard::initShader(std::string resourceDirectory)
     }
     bbprog->addUniform("P");
     bbprog->addUniform("V");
-    bbprog->addUniform("M");
+    bbprog->addUniform("ScaleM");
     bbprog->addUniform("campos");
     bbprog->addUniform("light1pos");
-    bbprog->addUniform("texOffset");
     bbprog->addUniform("title_tex");
     bbprog->addUniform("normal_map_tex");
     bbprog->addUniform("myCubeDim");
+    bbprog->addUniform("interp");
+    bbprog->addUniform("animation_stage");
     bbprog->addAttribute("vertPos");
     bbprog->addAttribute("vertNor");
     bbprog->addAttribute("vertTex");
+    bbprog->addAttribute("InstanceStartPos");
     bbprog->addAttribute("InstanceMidPos");
+    bbprog->addAttribute("InstanceEndPos");
+    bbprog->addAttribute("InstancePhases");
+    bbprog->addAttribute("InstanceTexOffset");
     return bbprog;
 }
 
@@ -97,8 +102,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
     std::vector<float> poses_mid = std::vector<float>();
     std::vector<float> poses_end = std::vector<float>();
     std::vector<float> offsets_tex_coords = std::vector<float>();
-    std::vector<float> phases1 = std::vector<float>();
-    std::vector<float> phases2 = std::vector<float>();
+    std::vector<float> phases = std::vector<float>();
 
     bbCubes = std::vector<BBCube>();
     bbCubesPost = std::vector<BBCube>();
@@ -110,7 +114,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             BBCube cube = BBCube();
 
             cube.target.pos = glm::vec3((x) * (1.0f / myCubeDim),
-                                        (y) * (0.5f / myCubeDim), -1.5);
+                                        (y) * (0.5f / myCubeDim), -0.75);
             cube.target.pos.x -= 1 / 2.0f;
             cube.target.pos.y -= 1 / 4.0f;
 
@@ -118,21 +122,24 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
                 glm::vec3(1.0f / myCubeDim, 1.0f / myCubeDim, 1.0f / myCubeDim);
             cube.source = cube.target;
             // cube.source.scale *= 0.001;
-            cube.source.pos.z -= 500;
-            cube.source.pos.x = map(rand() % 1000, 0, 1000, -100, 100);
-            cube.source.pos.y = map(rand() % 1000, 0, 1000, -100, 100);
+            cube.source.pos.z -= 200;
+           // cube.source.pos.z += map(rand() % 1000, 0, 1000, -75, 75);
+            cube.source.pos.x = map(rand() % 10000, 0, 10000, -100, 100);
+            cube.source.pos.y = map(rand() % 10000, 0, 10000, -100, 100);
 
             cube.phase = (1.0f - length(glm::vec2(cube.target.pos.x,
-                                                  cube.target.pos.y))) *
-                         0.5;
-            cube.phase += map(rand() % 1000, 0, 1000, -0.05, 0.05);
-            cube.phase += map(rand() % 1000, 0, 1000, 0, 0.05);
-            cube.phase += 0.4;
+                                                  cube.target.pos.y))) * 0.8;
+           // cube.phase = map(2-(-cube.target.pos.x + cube.target.pos.y), -2, 2, 0, 1);
+            cube.phase += map(rand() % 1000, 0, 1000, -0.02, 0.02);
+            cube.phase += 0.5;
             cube.resetInterp();
             cube.dosin = 1;
             cube.texOffset.x = x * (1.0f / myCubeDim);
             cube.texOffset.y = y * (1.0f / myCubeDim);
 
+            poses_start.push_back(cube.source.pos.x);
+            poses_start.push_back(cube.source.pos.y);
+            poses_start.push_back(cube.source.pos.z);
             poses_mid.push_back(cube.target.pos.x);
             poses_mid.push_back(cube.target.pos.y);
             poses_mid.push_back(cube.target.pos.z);
@@ -144,12 +151,22 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             pcube.target.pos.z -= 1000;
             // pcube.target.scale *= 0.001f;
             pcube.dosin = 1;
-            pcube.phase = map(1 - glm::abs(cube.target.pos.x), 0, 1, -0.2, 0);
+            pcube.phase = map(1 - glm::abs(cube.target.pos.x), 0, 1, -0.2, -0.05);
             pcube.phase += map(rand() % 1000, 0, 1000, -0.01, 0.01);
             pcube.resetInterp();
 
             bbCubes.push_back(cube);
             bbCubesPost.push_back(pcube);
+
+            poses_end.push_back(pcube.target.pos.x);
+            poses_end.push_back(pcube.target.pos.y);
+            poses_end.push_back(pcube.target.pos.z);
+
+            phases.push_back(cube.phase);
+            phases.push_back(pcube.phase);
+
+			offsets_tex_coords.push_back(cube.texOffset.x);
+            offsets_tex_coords.push_back(cube.texOffset.y);
         }
     }
 
@@ -164,6 +181,64 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
         glEnableVertexAttribArray(position_loc + i);
         glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
                               sizeof(float) * 3, 0),
+            glVertexAttribDivisor(position_loc + i, 1);
+    }
+
+    glGenBuffers(1, &IBID_Poses_Start);
+    glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_Start);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_start.size(),
+                 poses_start.data(), GL_STATIC_DRAW);
+    position_loc = glGetAttribLocation(bbprog->pid, "InstanceStartPos");
+
+    for (int i = 0; i < bbCubes.size(); i++)
+    {
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 3, 0),
+            glVertexAttribDivisor(position_loc + i, 1);
+    }
+
+    glGenBuffers(1, &IBID_Poses_End);
+    glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_End);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_end.size(),
+                 poses_end.data(), GL_STATIC_DRAW);
+    position_loc = glGetAttribLocation(bbprog->pid, "InstanceEndPos");
+
+    for (int i = 0; i < bbCubes.size(); i++)
+    {
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 3, 0),
+            glVertexAttribDivisor(position_loc + i, 1);
+    }
+
+	  glGenBuffers(1, &IBID_Phases);
+    glBindBuffer(GL_ARRAY_BUFFER, IBID_Phases);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * phases.size(), phases.data(),
+                 GL_STATIC_DRAW);
+    position_loc = glGetAttribLocation(bbprog->pid, "InstancePhases");
+
+    for (int i = 0; i < bbCubes.size(); i++)
+    {
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 2, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 2, 0),
+            glVertexAttribDivisor(position_loc + i, 1);
+    }
+
+		  glGenBuffers(1, &IBID_TexCoordsOffset);
+    glBindBuffer(GL_ARRAY_BUFFER, IBID_TexCoordsOffset);
+                  glBufferData(GL_ARRAY_BUFFER,
+                               sizeof(float) * offsets_tex_coords.size(),
+                               offsets_tex_coords.data(),
+                 GL_STATIC_DRAW);
+    position_loc = glGetAttribLocation(bbprog->pid, "InstanceTexOffset");
+
+    for (int i = 0; i < bbCubes.size(); i++)
+    {
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 2, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 2, 0),
             glVertexAttribDivisor(position_loc + i, 1);
     }
 
@@ -204,9 +279,9 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
     str = resourceDirectory + "/NormalMap.png";
     strcpy(filepath, str.c_str());
     data = stbi_load(filepath, &width, &height, &channels, 4);
-    glGenTextures(1, &Texture);
+    glGenTextures(1, &TextureN);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, Texture);
+    glBindTexture(GL_TEXTURE_2D, TextureN);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -233,12 +308,16 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
 
     glUniform3f(bbprog->getUniform("campos"), campos.x, campos.y, campos.z);
-    static float w = 0;
-    w += frametime;
+    static float light_w = 0;
+    static float instance_interp_w = 0;
+    static int animation_stage = 0;
+    light_w += frametime;
+    instance_interp_w += frametime / 5.0f;
 
     glm::vec4 l1p = glm::vec4(0, 0, -5, 0);
     l1p =
-        glm::rotate(glm::mat4(1), sin(w * 2) / 2.0f, glm::vec3(0, 1, 0)) * l1p;
+        glm::rotate(glm::mat4(1), sin(light_w * 2) / 2.0f, glm::vec3(0, 1, 0)) *
+        l1p;
 
     glUniform3f(bbprog->getUniform("light1pos"), l1p.x, l1p.y, l1p.z);
 
@@ -252,12 +331,25 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
 
     glUniform1i(bbprog->getUniform("myCubeDim"), myCubeDim);
 
-    glm::mat4 M;
+    if (animation_stage < 1)
+    {
+        animation_stage = 1;
+        instance_interp_w = -1;
+    }
+    else if (animation_stage < 2 && instance_interp_w > 1.0f)
+    {
+        animation_stage = 2;
+        instance_interp_w = 0;
+    }
 
-    /*glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
-                cube.texOffset.y);*/
-    M = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
-    glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+    glUniform1i(bbprog->getUniform("animation_stage"), animation_stage);
+    glUniform1f(bbprog->getUniform("interp"), instance_interp_w);
+
+    glm::mat4 ScaleM;
+
+    ScaleM = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
+    glUniformMatrix4fv(bbprog->getUniform("ScaleM"), 1, GL_FALSE,
+                       &ScaleM[0][0]);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0,
                             bbCubes.size());
 

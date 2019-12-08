@@ -22,10 +22,9 @@ class Billboard
     GLuint IBID_Poses_Mid;
     GLuint IBID_Poses_End;
     GLuint IBID_TexCoordsOffset;
-    GLuint IBID_Phase1;
-    GLuint IBID_Phase2;
+    GLuint IBID_Phases;
 
-    GLuint Texture;
+    GLuint Texture, TextureN;
     int myCubeDim;
     std::vector<BBCube> bbCubes;
     std::vector<BBCube> bbCubesPost;
