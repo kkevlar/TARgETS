@@ -12,7 +12,7 @@
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 
-Billboard::Billboard(){    myCubeDim = 32;
+Billboard::Billboard(){    myCubeDim = 10;
 }
 
   static inline float map(
@@ -82,7 +82,7 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
 
     glUseProgram(bbprog->pid);
 
-    std::string str = resourceDirectory + "/black.png";
+    std::string str = resourceDirectory + "/black2.png";
     strcpy(filepath, str.c_str());
     unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
     glGenTextures(1, &Texture);
@@ -137,7 +137,7 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
             cube.target.scale = glm::vec3(1.0f / myCubeDim, 1.0f / myCubeDim, 1.0f / myCubeDim);
             cube.source = cube.target;
             //cube.source.scale *= 0.001;
-            cube.source.pos.z -= 500;
+            cube.source.pos.z -= 100;
             cube.source.pos.x = map(rand() % 1000, 0, 1000, -100, 100);
             cube.source.pos.y = map(rand() % 1000, 0, 1000, -100, 100);
 					  

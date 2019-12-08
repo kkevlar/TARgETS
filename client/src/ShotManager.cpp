@@ -211,7 +211,7 @@ void ShotManager::advanceShots(float frametime)
 
         if (!ball.obj.show) continue;
 
-        ball.obj.interp += 3 * frametime;
+        ball.obj.interp += 2.25 * frametime;
         ball.obj.interpBetween();
 
         if (ball.obj.interp > 0.99)
