@@ -375,7 +375,7 @@ class Application : public EventCallbacks
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
-        bbprog->addAttribute("instancedMidPoses");
+        bbprog->addAttribute("Instance");
 
         skyboxprog = std::make_shared<Program>();
         skyboxprog->setVerbose(true);

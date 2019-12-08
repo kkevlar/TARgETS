@@ -124,18 +124,20 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
         }
     }
 
-    glUseProgram(bbprog->pid);
+
     glGenBuffers(1, &IBID_Poses_Mid);
     glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_Mid);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_mid.size(),
-                 poses_mid.data(), GL_STATIC_DRAW);
+                 poses_mid.data(), GL_DYNAMIC_DRAW);
+    int position_loc = glGetAttribLocation(bbprog->pid, "Instance");
 
     for (int i = 0; i < bbCubes.size(); i++)
     {
-        glEnableVertexAttribArray(3 + i);
-        glVertexAttribPointer(3 + i, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3,
-            0); 
-        glVertexAttribDivisor(3 + i, 1);
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(float) * 3, (void*)(sizeof(float)*3 * i)),
+           
+        glVertexAttribDivisor(position_loc + i, 1);
     }
 
     // indices

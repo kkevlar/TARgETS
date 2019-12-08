@@ -1,11 +1,10 @@
 #include "Shape.h"
 #include <iostream>
+
 #include "GLSL.h"
 #include "Program.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 
@@ -18,7 +17,7 @@ void Shape::loadMesh(const string &meshName, string *mtlpath, unsigned char *(lo
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> objMaterials;
 	string errStr;
-	bool rc = 0;
+	bool rc = FALSE;
 	if (mtlpath)
 		rc = tinyobj::LoadObj(shapes, objMaterials, errStr, meshName.c_str(), mtlpath->c_str());
 	else
@@ -210,7 +209,7 @@ void Shape::init()
 		assert(glGetError() == GL_NO_ERROR);
 	}
 }
-void Shape::draw(const shared_ptr<Program> prog) const
+void Shape::draw(const shared_ptr<Program> prog,bool use_extern_texures) const
 {
 	for (int i = 0; i < obj_count; i++)
 
@@ -251,12 +250,14 @@ void Shape::draw(const shared_ptr<Program> prog) const
 
 		//texture
 		
-
-		int textureindex = materialIDs[i];
-		if (textureindex >= 0)
+		if (!use_extern_texures)
 		{
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textureIDs[textureindex]);
+			int textureindex = materialIDs[i];
+			if (textureindex >= 0)
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textureIDs[textureindex]);
+			}
 		}
 		// Draw
 		glDrawElements(GL_TRIANGLES, (int)eleBuf[i].size(), GL_UNSIGNED_INT, (const void *)0);
@@ -274,249 +275,4 @@ void Shape::draw(const shared_ptr<Program> prog) const
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
-
 }
-
-typedef struct
-{
-	glm::vec3 a;
-	glm::vec3 b;
-	glm::vec3 c;
-} tri_t;
-
-static inline float max_2_float(float a, float b)
-{
-	if (a < b)
-	{
-		return b;
-	}
-	else
-	{
-		return a;
-	}
-}
-
-static inline float max_3_float(float a, float b, float c)
-{
-	return max_2_float(max_2_float(a, b), c);
-}
-
-static inline float min_2_float(float a, float b)
-{
-	if (a < b)
-	{
-		return a;
-	}
-	else
-	{
-		return b;
-	}
-}
-
-static inline float min_3_float(float a, float b, float c)
-{
-	return min_2_float(min_2_float(a, b), c);
-}
-
-static inline float bound_box_x_min(tri_t& tri)
-{
-	return min_3_float(tri.a.x, tri.b.x, tri.c.x);
-}
-
-static inline float bound_box_y_min(tri_t& tri)
-{
-	return min_3_float(tri.a.y, tri.b.y, tri.c.y);
-}
-
-static inline float bound_box_z_min(tri_t& tri)
-{
-	return min_3_float(tri.a.z, tri.b.z, tri.c.z);
-}
-
-
-static inline float bound_box_x_max(tri_t& tri)
-{
-	return max_3_float(tri.a.x, tri.b.x, tri.c.x);
-}
-
-static inline float bound_box_y_max(tri_t& tri)
-{
-	return max_3_float(tri.a.y, tri.b.y, tri.c.y);
-}
-
-static inline float bound_box_z_max(tri_t& tri)
-{
-	return max_3_float(tri.a.z, tri.b.z, tri.c.z);
-}
-
-static inline float tri_area(tri_t& tri)
-{
-	return 0.5 * glm::abs(glm::length(glm::cross(tri.a - tri.b, tri.a - tri.c)));
-}
-
-typedef struct
-{
-	bool in;
-	float f_a;
-	float f_b;
-	float f_c;
-
-} in_tri_result_t;
-
-static inline void point_in_tri(in_tri_result_t& result,
-	tri_t& tri,
-	float x,
-	float y,
-	float z)
-{
-	tri_t a, b, c;
-
-	a.a.x = x;
-	a.a.y = y;
-	a.a.z = z;
-	a.b.x = tri.b.x;
-	a.b.y = tri.b.y;
-	a.b.z = tri.b.z;
-	a.c.x = tri.c.x;
-	a.c.y = tri.c.y;
-	a.c.z = tri.c.z;
-
-	b.a.x = tri.a.x;
-	b.a.y = tri.a.y;
-	b.a.z = tri.a.z;
-	b.b.x = x;
-	b.b.y = y;
-	b.b.z = z;
-	b.c.x = tri.c.x;
-	b.c.y = tri.c.y;
-	b.c.z = tri.c.z;
-
-	c.a.x = tri.a.x;
-	c.a.y = tri.a.y;
-	c.a.z = tri.a.z;
-	c.b.x = tri.b.x;
-	c.b.y = tri.b.y;
-	c.b.z = tri.b.z;
-	c.c.x = x;
-	c.c.y = y;
-	c.c.z = z;
-
-	float total = tri_area(tri);
-
-	result.in = (result.f_a + result.f_b + result.f_c - total < 0.1);
-}
-
-static inline uint64_t i2hash(uint64_t a, uint64_t b)
-{
-	return 5 * (a*31 + b) * (a + b + 1) + b *31;
-}
-
-static inline uint64_t i3hash(uint64_t a, uint64_t b, uint64_t c)
-{
-	return 5 * (i2hash(a, b) * 31 + c) * (i2hash(a, b) + c + 1) + c;
-}
-
-static inline uint64_t v3hash(glm::vec3 v)
-{
-	uint64_t x = (v.x ) * 10000;
-	uint64_t y = (v.y ) * 10000;
-	uint64_t z = (v.z ) * 10000;
-
-	return i3hash(x, y, z);
-}
-
-#define SZ 46181
-bool table[SZ];
-
-//void set_cubeposes_in_tri(std::vector<glm::vec3> &outposes, float step, tri_t tri, bool* table)
-//{
-//	float xmin, xmax, x;
-//	float ymin, ymax, y;
-//	float zmin, zmax, z;
-//	in_tri_result_t result;
-//	
-//
-//	xmin = bound_box_x_min(tri);
-//	xmax = bound_box_x_max(tri);
-//	ymin = bound_box_y_min(tri);
-//	ymax = bound_box_y_max(tri);
-//	zmin = bound_box_z_min(tri);
-//	zmax = bound_box_z_max(tri);
-//
-//	xmin = round(xmin / step) * step;
-//	xmax = round(xmin / step) * step;
-//	ymin = round(ymin / step) * step;
-//	ymax = round(ymax / step) * step;
-//	zmin = round(zmin / step) * step;
-//	zmax = round(zmax / step) * step;
-//
-//	for (z = zmin-step/2; z < zmax + step *2; z+=step)
-//	{
-//		for (y = ymin - step/2; y < ymax + step*2; y+=step)
-//		{
-//			for (x = xmin - step/2; x < xmax + step*2; x+=step)
-//			{
-//				if (table[v3hash(glm::vec3(x, y, z)) % SZ])
-//					continue;
-//
-//				point_in_tri(result, tri, x, y, z);
-//				if (result.in)
-//				{
-//					outposes.push_back(glm::vec3(x, y, z));
-//					table[v3hash(glm::vec3(x, y, z)) % SZ] = 1;
-//				}
-//			}
-//		}
-//	}
-//}
-
-void set_cubeposes_in_tri(std::vector<glm::vec3>& outposes, float step, tri_t &tri, bool* table)
-{
-	float x, y, z;
-	
-	x = (tri.a.x + tri.b.x + tri.c.x) / 3;
-	y = (tri.a.y + tri.b.y + tri.c.y) / 3;
-	z = (tri.a.z + tri.b.z + tri.c.z) / 3;
-
-	x = round(x / step) * step;
-	y = round(y / step) * step;
-	z = round(z/ step) * step;
-
-				if (table[v3hash(glm::vec3(x, y, z)) % SZ])
-					return;
-
-					outposes.push_back(glm::vec3(x, y, z));
-					table[v3hash(glm::vec3(x, y, z)) % SZ] = 1;
-				
-			
-}
-
-void Shape::cubify(std::vector<glm::vec3> &outposes, float step)
-{
-	
-
-	for (int i = 0; i < SZ; i++)
-	{
-		table[i] = 0;
-	}
-
-	tri_t tri;
-	for (unsigned int i = 0; i < eleBuf->size(); i+=3)
-	{
-		tri.a.x = posBuf->data()[eleBuf->data()[i] + 0];
-		tri.a.y = posBuf->data()[eleBuf->data()[i] + 1];
-		tri.a.z = posBuf->data()[eleBuf->data()[i] + 2];
-
-		tri.b.x = posBuf->data()[eleBuf->data()[i+1] + 0];
-		tri.b.y = posBuf->data()[eleBuf->data()[i+1] + 1];
-		tri.b.z = posBuf->data()[eleBuf->data()[i+1] + 2];
-
-		tri.c.x = posBuf->data()[eleBuf->data()[i+2] + 0];
-		tri.c.y = posBuf->data()[eleBuf->data()[i+2] + 1];
-		tri.c.z = posBuf->data()[eleBuf->data()[i+2] + 2];
-
-		set_cubeposes_in_tri(outposes, step, tri, table);
-	}
-}
-
-
