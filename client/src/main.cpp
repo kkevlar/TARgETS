@@ -14,8 +14,8 @@
 
 #include "Collision.h"
 #include "Shape.h"
-#include "Skybox.h"
 #include "ShotManager.h"
+#include "Skybox.h"
 #include "WindowManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -51,7 +51,7 @@ class camera
     glm::mat4 process(double ftime)
     {
         float speed = 0;
-      
+
         float yangle = 0;
         if (a == 1)
             yangle = -1 * ftime;
@@ -272,7 +272,7 @@ class Application : public EventCallbacks
 
         glBindVertexArray(0);
 
-        billboard.init(bbprog);
+        billboard.initEverythingElse(bbprog);
         skybox.init(skyboxprog);
     }
 
@@ -352,35 +352,16 @@ class Application : public EventCallbacks
         glowprog->addAttribute("vertNor");
         glowprog->addAttribute("vertTex");
 
-        bbprog = std::make_shared<Program>();
-        bbprog->setVerbose(true);
-        bbprog->setShaderNames(resourceDirectory + "/bb_vertex.glsl",
-                               resourceDirectory + "/bb_frag.glsl");
-        if (!bbprog->init())
-        {
-            std::cerr << "One or more shaders failed to compile... exiting!"
-                      << std::endl;
-            exit(1);  // make a breakpoint here and check the output window for
-                      // the error message!
-        }
-        bbprog->addUniform("P");
-        bbprog->addUniform("V");
-        bbprog->addUniform("M");
-        bbprog->addUniform("campos");
-        bbprog->addUniform("light1pos");
-        bbprog->addUniform("texOffset");
-        bbprog->addUniform("title_tex");
-        bbprog->addUniform("normal_map_tex");
-        bbprog->addUniform("myCubeDim");
-        bbprog->addAttribute("vertPos");
-        bbprog->addAttribute("vertNor");
-        bbprog->addAttribute("vertTex");
-        bbprog->addAttribute("Instance");
 
-        skyboxprog = std::make_shared<Program>();
+
+        bbprog = billboard.initShader(resourceDirectory);
+     
+
+
+		skyboxprog = std::make_shared<Program>();
         skyboxprog->setVerbose(true);
         skyboxprog->setShaderNames(resourceDirectory + "/skybox_vertex.glsl",
-                               resourceDirectory + "/skybox_frag.glsl");
+                                   resourceDirectory + "/skybox_frag.glsl");
         if (!skyboxprog->init())
         {
             std::cerr << "One or more shaders failed to compile... exiting!"
@@ -643,7 +624,7 @@ class Application : public EventCallbacks
 
         V = mycam.process(frametime);
 
-        skybox.draw(skyboxprog,P,V);
+        skybox.draw(skyboxprog, P, V);
 
         static float t = 0;
         t += 0.01;
@@ -659,10 +640,9 @@ class Application : public EventCallbacks
 
         glBindVertexArray(VertexArrayID);
 
-		
-		if (glfwGetTime() > 16) playGame = 1;
+        if (glfwGetTime() > 16) playGame = 1;
 
-		        if (playGame)
+        if (playGame)
         {
             game_render(frametime, P, V);
         }
@@ -670,7 +650,6 @@ class Application : public EventCallbacks
         {
             billboard.draw(bbprog, mycam.pos, frametime, P, V);
         }
-
     }
 };
 //******************************************************************************************

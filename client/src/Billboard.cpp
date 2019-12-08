@@ -20,7 +20,36 @@ static inline float map(
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-void Billboard::init(std::shared_ptr<Program>& bbprog)
+std::shared_ptr<Program> Billboard::initShader(std::string resourceDirectory)
+{
+    std::shared_ptr<Program>  bbprog = std::make_shared<Program>();
+    bbprog->setVerbose(true);
+    bbprog->setShaderNames(resourceDirectory + "/bb_vertex.glsl",
+                           resourceDirectory + "/bb_frag.glsl");
+    if (!bbprog->init())
+    {
+        std::cerr << "One or more shaders failed to compile... exiting!"
+                  << std::endl;
+        exit(1);  // make a breakpoint here and check the output window for
+                  // the error message!
+    }
+    bbprog->addUniform("P");
+    bbprog->addUniform("V");
+    bbprog->addUniform("M");
+    bbprog->addUniform("campos");
+    bbprog->addUniform("light1pos");
+    bbprog->addUniform("texOffset");
+    bbprog->addUniform("title_tex");
+    bbprog->addUniform("normal_map_tex");
+    bbprog->addUniform("myCubeDim");
+    bbprog->addAttribute("vertPos");
+    bbprog->addAttribute("vertNor");
+    bbprog->addAttribute("vertTex");
+    bbprog->addAttribute("Instance");
+    return bbprog;
+}
+
+void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
 {
     glm::vec3 rect_pos[4];
     glm::vec2 rect_tex[4];
@@ -124,7 +153,6 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
         }
     }
 
-
     glGenBuffers(1, &IBID_Poses_Mid);
     glBindBuffer(GL_ARRAY_BUFFER, IBID_Poses_Mid);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * poses_mid.size(),
@@ -133,10 +161,10 @@ void Billboard::init(std::shared_ptr<Program>& bbprog)
 
     for (int i = 0; i < bbCubes.size(); i++)
     {
-        glEnableVertexAttribArray(position_loc +i);
-        glVertexAttribPointer(position_loc+i , 3, GL_FLOAT, GL_FALSE,
+        glEnableVertexAttribArray(position_loc + i);
+        glVertexAttribPointer(position_loc + i, 3, GL_FLOAT, GL_FALSE,
                               sizeof(float) * 3, 0),
-        glVertexAttribDivisor(position_loc+i, 1);
+            glVertexAttribDivisor(position_loc + i, 1);
     }
 
     // indices
@@ -226,13 +254,12 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
 
     glm::mat4 M;
 
-        /*glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
-                    cube.texOffset.y);*/
-        M = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
-        glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0,
-                                bbCubes.size());
-   
+    /*glUniform2f(bbprog->getUniform("texOffset"), cube.texOffset.x,
+                cube.texOffset.y);*/
+    M = glm::scale(glm::mat4(1), bbCubes.data()[0].target.scale);
+    glUniformMatrix4fv(bbprog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0,
+                            bbCubes.size());
 
     glBindVertexArray(0);
 

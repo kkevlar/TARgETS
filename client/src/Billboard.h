@@ -31,7 +31,8 @@ class Billboard
     std::vector<BBCube> bbCubesPost;
 
    public:
-    void init(std::shared_ptr<Program>& bbprog);
+    std::shared_ptr<Program> initShader(std::string resourceDirectory);
+    void initEverythingElse(std::shared_ptr<Program>& bbprog);
     void draw(std::shared_ptr<Program>& bbprog,
               glm::vec3 campos,
               double frametime,
