@@ -371,11 +371,9 @@ class Application : public EventCallbacks
         bbprog->addUniform("texOffset");
         bbprog->addUniform("title_tex");
         bbprog->addUniform("normal_map_tex");
-        bbprog->addUniform("myCubeDim");
         bbprog->addAttribute("vertPos");
         bbprog->addAttribute("vertNor");
         bbprog->addAttribute("vertTex");
-        bbprog->addAttribute("Instance");
 
         skyboxprog = std::make_shared<Program>();
         skyboxprog->setVerbose(true);

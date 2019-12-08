@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-
-
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 
@@ -25,9 +25,12 @@ public:
 	void loadMesh(const std::string &meshName, std::string *mtlName = NULL, unsigned char *(loadimage)(char const *, int *, int *, int *, int) = NULL);
 	void init();
 	void resize();
-	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures) const;
+	void draw(const std::shared_ptr<Program> prog) const;
+	void cubify(std::vector<glm::vec3> &outposes, float step);
 	unsigned int *textureIDs = NULL;
 
+
+private:
 	int obj_count = 0;
 	std::vector<unsigned int> *eleBuf = NULL;
 	std::vector<float> *posBuf = NULL;
