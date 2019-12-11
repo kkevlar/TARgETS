@@ -122,13 +122,15 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             cube.source = cube.target;
             // cube.source.scale *= 0.001;
             cube.source.pos.z -= 200;
-           // cube.source.pos.z += map(rand() % 1000, 0, 1000, -75, 75);
+            // cube.source.pos.z += map(rand() % 1000, 0, 1000, -75, 75);
             cube.source.pos.x = map(rand() % 10000, 0, 10000, -100, 100);
             cube.source.pos.y = map(rand() % 10000, 0, 10000, -100, 100);
 
             cube.phase = (1.0f - length(glm::vec2(cube.target.pos.x,
-                                                  cube.target.pos.y))) * 0.8;
-           // cube.phase = map(2-(-cube.target.pos.x + cube.target.pos.y), -2, 2, 0, 1);
+                                                  cube.target.pos.y))) *
+                         0.8;
+            // cube.phase = map(2-(-cube.target.pos.x + cube.target.pos.y), -2,
+            // 2, 0, 1);
             cube.phase += map(rand() % 1000, 0, 1000, -0.02, 0.02);
             cube.phase += 0.5;
             cube.resetInterp();
@@ -150,10 +152,12 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             pcube.target.pos.z -= 1000;
             // pcube.target.scale *= 0.001f;
             pcube.dosin = 1;
-            pcube.phase = map(1 - glm::abs(cube.target.pos.x), 0, 1, -0.2, -0.05);
+            pcube.phase =
+                map(1 - glm::abs(cube.target.pos.x), 0, 1, -0.2, -0.05);
             pcube.phase += map(rand() % 1000, 0, 1000, -0.01, 0.01);
             pcube.resetInterp();
 
+            /* YOU GOTTA DELTETE THIS SOON */
             bbCubes.push_back(cube);
             bbCubesPost.push_back(pcube);
 
@@ -164,7 +168,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             phases.push_back(cube.phase);
             phases.push_back(pcube.phase);
 
-			offsets_tex_coords.push_back(cube.texOffset.x);
+            offsets_tex_coords.push_back(cube.texOffset.x);
             offsets_tex_coords.push_back(cube.texOffset.y);
         }
     }
@@ -211,7 +215,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             glVertexAttribDivisor(position_loc + i, 1);
     }
 
-	  glGenBuffers(1, &IBID_Phases);
+    glGenBuffers(1, &IBID_Phases);
     glBindBuffer(GL_ARRAY_BUFFER, IBID_Phases);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * phases.size(), phases.data(),
                  GL_STATIC_DRAW);
@@ -225,12 +229,10 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             glVertexAttribDivisor(position_loc + i, 1);
     }
 
-		  glGenBuffers(1, &IBID_TexCoordsOffset);
+    glGenBuffers(1, &IBID_TexCoordsOffset);
     glBindBuffer(GL_ARRAY_BUFFER, IBID_TexCoordsOffset);
-                  glBufferData(GL_ARRAY_BUFFER,
-                               sizeof(float) * offsets_tex_coords.size(),
-                               offsets_tex_coords.data(),
-                 GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * offsets_tex_coords.size(),
+                 offsets_tex_coords.data(), GL_STATIC_DRAW);
     position_loc = glGetAttribLocation(bbprog->pid, "InstanceTexOffset");
 
     for (int i = 0; i < bbCubes.size(); i++)
@@ -296,10 +298,10 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
 }
 
 int Billboard::draw(std::shared_ptr<Program>& bbprog,
-                     glm::vec3 campos,
-                     double frametime,
-                     glm::mat4 P,
-                     glm::mat4 V)
+                    glm::vec3 campos,
+                    double frametime,
+                    glm::mat4 P,
+                    glm::mat4 V)
 {
     bbprog->bind();
 
@@ -314,9 +316,7 @@ int Billboard::draw(std::shared_ptr<Program>& bbprog,
     instance_interp_w += frametime / 5.0f;
 
     glm::vec4 l1p = glm::vec4(0, 0, -5, 0);
-    l1p =
-        glm::rotate(glm::mat4(1), sin(light_w * 2) / 2.0f, glm::vec3(0, 1, 0)) *
-        l1p;
+    l1p += glm::vec4(light_w-4, 0, -5, 0);
 
     glUniform3f(bbprog->getUniform("light1pos"), l1p.x, l1p.y, l1p.z);
 
@@ -361,6 +361,5 @@ int Billboard::draw(std::shared_ptr<Program>& bbprog,
 
     bbprog->unbind();
 
-return animation_stage;
+    return animation_stage;
 }
->>>>>>> instancebb
