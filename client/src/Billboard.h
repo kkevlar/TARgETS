@@ -23,11 +23,9 @@ class Billboard
     GLuint IBID_Poses_End;
     GLuint IBID_TexCoordsOffset;
     GLuint IBID_Phases;
-
     GLuint Texture, TextureN;
     int myCubeDim;
-    std::vector<BBCube> bbCubes;
-    std::vector<BBCube> bbCubesPost;
+    glm::vec3 targetScale;
 
    public:
     std::shared_ptr<Program> initShader(std::string resourceDirectory);
