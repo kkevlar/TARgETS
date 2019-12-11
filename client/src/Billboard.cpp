@@ -110,7 +110,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             BBCube cube = BBCube();
 
             cube.target.pos = glm::vec3((x) * (1.0f / myCubeDim),
-                                        (y) * (0.5f / myCubeDim), -0.75);
+                                        (y) * (0.5f / myCubeDim), -0.65);
             cube.target.pos.x -= 1 / 2.0f;
             cube.target.pos.y -= 1 / 4.0f;
 
@@ -120,8 +120,8 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             // cube.source.scale *= 0.001;
             cube.source.pos.z -= 200;
             // cube.source.pos.z += map(rand() % 1000, 0, 1000, -75, 75);
-            cube.source.pos.x = map(rand() % 10000, 0, 10000, -100, 100);
-            cube.source.pos.y = map(rand() % 10000, 0, 10000, -100, 100);
+            cube.source.pos.x += map(rand() % 10000, 0, 10000, -90, 90);
+            cube.source.pos.y += map(rand() % 10000, 0, 10000, -90, 90);
 
             cube.phase = (1.0f - length(glm::vec2(cube.target.pos.x,
                                                   cube.target.pos.y))) *
@@ -307,11 +307,15 @@ int Billboard::draw(std::shared_ptr<Program>& bbprog,
     static float light_w = 0;
     static float instance_interp_w = 0;
     static int animation_stage = 0;
-    light_w += frametime;
+    if((animation_stage == 1 && instance_interp_w > 0.2f) || animation_stage > 1)
+    {
+    light_w += 4*frametime;
+    }
+
     instance_interp_w += frametime / 5.0f;
 
-    glm::vec4 l1p = glm::vec4(0, 0, -5, 0);
-    l1p += glm::vec4(light_w - 4, 0, -5, 0);
+    glm::vec4 l1p = glm::vec4(0, 0.5, -5, 0);
+    l1p += glm::vec4(-light_w + 5, 0, -5, 0);
 
     glUniform3f(bbprog->getUniform("light1pos"), l1p.x, l1p.y, l1p.z);
 
