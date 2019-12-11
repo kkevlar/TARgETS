@@ -1,15 +1,14 @@
 #version 410 core
 out vec4 color;
-in vec3 vertex_normal;
 in vec3 vertex_pos;
 in vec2 vertex_tex;
+in vec2 offset_tex;
 
 uniform sampler2D title_tex;
 uniform sampler2D normal_map_tex;
 
 uniform vec3 campos;
 uniform vec3 light1pos;
-uniform vec2 texOffset;
 //uniform vec3 light2pos;
 
 
@@ -17,7 +16,7 @@ void main()
 {
 
 vec2 vt = vertex_tex;
-vt += texOffset;
+vt += offset_tex;
 vt.y = 1- vt.y;
 
 
@@ -51,7 +50,7 @@ float ambient_factor = 0.25;
 
 
 tcol.rgb *= (diffuse_factor1 + ambient_factor);
-//
+
 tcol.r = clamp(tcol.r,0,1);
 tcol.g = clamp(tcol.g,0,1);
 tcol.b = clamp(tcol.b,0,1);

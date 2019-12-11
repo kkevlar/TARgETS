@@ -22,17 +22,17 @@ class Billboard
     GLuint IBID_Poses_Mid;
     GLuint IBID_Poses_End;
     GLuint IBID_TexCoordsOffset;
-    GLuint IBID_Phase1;
-    GLuint IBID_Phase2;
+    GLuint IBID_Phases;
 
-    GLuint Texture;
+    GLuint Texture, TextureN;
     int myCubeDim;
     std::vector<BBCube> bbCubes;
     std::vector<BBCube> bbCubesPost;
 
    public:
-    void init(std::shared_ptr<Program>& bbprog);
-    void draw(std::shared_ptr<Program>& bbprog,
+    std::shared_ptr<Program> initShader(std::string resourceDirectory);
+    void initEverythingElse(std::shared_ptr<Program>& bbprog);
+    int draw(std::shared_ptr<Program>& bbprog,
               glm::vec3 campos,
               double frametime,
               glm::mat4 P,

@@ -237,7 +237,7 @@ void ShotManager::drawShots(std::shared_ptr<Program> prog,
         glm::vec3 clr = color_list.get_color(i / MAX_SHOTS_PER_PLAYER);
         glUniform3f(prog->getUniform("bonuscolor"), clr.x, clr.y, clr.z);
         ball.obj.sendModelMatrix(prog, glm::mat4(1));
-        shape.draw(prog);
+        shape.draw(prog, 0);
     }
 
     shotMutex.unlock();
