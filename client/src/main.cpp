@@ -640,15 +640,15 @@ class Application : public EventCallbacks
 
         glBindVertexArray(VertexArrayID);
 
-        if (glfwGetTime() > 16) playGame = 1;
-
         if (playGame)
         {
             game_render(frametime, P, V);
         }
         else
         {
-            billboard.draw(bbprog, mycam.pos, frametime, P, V);
+            int result;
+            result = billboard.draw(bbprog, mycam.pos, frametime, P, V);
+            playGame = result > 2;
         }
     }
 };

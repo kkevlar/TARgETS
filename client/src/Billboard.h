@@ -32,7 +32,7 @@ class Billboard
    public:
     std::shared_ptr<Program> initShader(std::string resourceDirectory);
     void initEverythingElse(std::shared_ptr<Program>& bbprog);
-    void draw(std::shared_ptr<Program>& bbprog,
+    int draw(std::shared_ptr<Program>& bbprog,
               glm::vec3 campos,
               double frametime,
               glm::mat4 P,

@@ -296,7 +296,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
     glUniform1i(Tex2Location, 1);
 }
 
-void Billboard::draw(std::shared_ptr<Program>& bbprog,
+int Billboard::draw(std::shared_ptr<Program>& bbprog,
                      glm::vec3 campos,
                      double frametime,
                      glm::mat4 P,
@@ -341,6 +341,11 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
         animation_stage = 2;
         instance_interp_w = 0;
     }
+    else if (animation_stage < 3 && instance_interp_w > 1.0f)
+    {
+        animation_stage = 3;
+        instance_interp_w = 0;
+    }
 
     glUniform1i(bbprog->getUniform("animation_stage"), animation_stage);
     glUniform1f(bbprog->getUniform("interp"), instance_interp_w);
@@ -356,4 +361,6 @@ void Billboard::draw(std::shared_ptr<Program>& bbprog,
     glBindVertexArray(0);
 
     bbprog->unbind();
+
+return animation_stage;
 }
