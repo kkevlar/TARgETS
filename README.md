@@ -56,7 +56,16 @@ Shoot Burst | **Right Click**
 
 ### Sky-Cylinder
 
+
+<br></br>
+
+<img  src="https://user-images.githubusercontent.com/10334426/70826324-78150000-1d9b-11ea-9bae-21d438dc5c37.png" width="300">
+
+<br></br>
+
+
 ### Scoreboard
+
 
 ## Troubleshooting
 
