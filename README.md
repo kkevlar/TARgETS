@@ -11,30 +11,6 @@ Special thanks to Professor Eckhardt and Professor Zoe Wood for the base templat
 
 This project is hosted (or at least it should be) both on [github](https://github.com/kkevlar/targets) and on Professor Eckhardt's [Mixed Reality Lab](http://mixedrealitylab.io/projects2.html).
 
-## Gameplay
-
-All players remain in the center of the "field", but can turn to face any direction within the cylinder of targets spawning around them.
-
-
-<img src="https://user-images.githubusercontent.com/10334426/70824816-e3f56980-1d97-11ea-9cd1-7b34f38dc7dd.png" width="400">
-
-
-### Controls
-
-Action | Key
---- | ---
-Turn Left | **A**
-Turn Right | **D**
-Shoot | **Left Click**
-Shoot Burst | **Right Click**
-
-### Winning Player
-
-The player with the highest score will have a yellow halo pulsing around their cursor.
-See the image below which shows a regular shot (Left Click), burst shot (Right Click), and the halo around the red cursor.
-
-<img src="https://user-images.githubusercontent.com/10334426/70824290-d095ce80-1d96-11ea-8723-3dc6d9127981.gif" width="600">
-
 ## Download and Play!
 
 
@@ -99,6 +75,31 @@ make -j4
 ./targets
 ```
 
+## Gameplay
+
+All players remain in the center of the "field", but can turn to face any direction within the cylinder of targets spawning around them.
+
+
+<img src="https://user-images.githubusercontent.com/10334426/70824816-e3f56980-1d97-11ea-9cd1-7b34f38dc7dd.png" width="400">
+
+
+### Controls
+
+Action | Key
+--- | ---
+Turn Left | **A**
+Turn Right | **D**
+Shoot | **Left Click**
+Shoot Burst | **Right Click**
+
+### Winning Player
+
+The player with the highest score will have a yellow halo pulsing around their cursor.
+See the image below which shows a regular shot (Left Click), burst shot (Right Click), and the halo around the red cursor.
+
+<img src="https://user-images.githubusercontent.com/10334426/70824290-d095ce80-1d96-11ea-8723-3dc6d9127981.gif" width="600">
+
+
 ## Gallery and Technical Details
 
 ### Initial Networked Game
@@ -131,7 +132,7 @@ Should be less distorted-looking for a long, rectangular skybox texture.
 ### Scoreboard
 
 The scoreboard has not been implemented yet.
-The currently-winning player will have a halo.
+The currently-winning player has a halo.
 
 ## Cpp Module Details
 
