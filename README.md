@@ -99,33 +99,62 @@ make -j4
 ./targets
 ```
 
-## Technial Details
+## Gallery and Technical Details
 
+### Initial Networked Game
 
-<img src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="300">
+Much of this project's work was in making the networked game from scratch. 
+The image below shows four players all running on the same machine, with their cursor positions mirrored for all other players.
+
+<img src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="600">
+
+### Cube Spawn Animation
+
 
 <img  src="https://user-images.githubusercontent.com/10334426/70824293-d095ce80-1d96-11ea-8b84-6cc88886c3df.gif" width="300">
 
 ### Splash Screen Animation
 
+The splash screen has normal mapping, specular lighting, and makes use of instance rendering. 
+Feel free to tweak the values in `Billboard.cpp` to try out different animations.
 
 <img  src="https://user-images.githubusercontent.com/10334426/70824294-d12e6500-1d96-11ea-974e-ca993fb9d5e9.gif" width="300">
 
 
 ### Sky-Cylinder
 
-
+Instead of a skybox, the project makes use of a sky-cylinder, where the space texture is mapped along the inside of the cylinder, as if it was unrolled to be a rectangle.
+Should be less distorted-looking for a long, rectangular skybox texture.
 
 <img  src="https://user-images.githubusercontent.com/10334426/70826324-78150000-1d9b-11ea-9bae-21d438dc5c37.png" width="300">
 
-
 ### Scoreboard
 
+The scoreboard has not been implemented yet.
+The currently-winning player will have a halo.
+
+## Cpp Module Details
+
+Module | Description
+--- | ---
+Billboard | Handles the splash screen and its animations
+Collision | Encapsulates the collision-detection algorithm 
+Cube | Contains a variety of important classes, including the `Target` class and `InterpObject` class (parent of `Target`). There aren't any classes called `Cube` anymore.
+Laser | Unimplemented so far
+main | Handles most of the gameplay and setup
+message | Handles incoming and outgoing messages to the server, including datatype serialization
+Shot | Simple class which represents one of a player's shots
+ShotManager | Handles the updating and rendering of every shot in the game
+Skybox | :)
+webclient | Super messily handles the actual connection with the server, including message serialization and deserialization.
 
 ## Troubleshooting
 
+Error  | Suggestion
+--- | ---
+`recv failed with error:` | The client can't connect to the server. Check server configuration / setup (see above).
 
 ## Contact
 
-Feel free to email me at Kellar dot Kevin at Gmail with any questions about the project.
+Feel free to email me at Kellar dot Kevin at Gmail with any questions about the project. :)
 
