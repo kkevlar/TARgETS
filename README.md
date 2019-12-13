@@ -15,7 +15,7 @@ This project is hosted (or at least it should be) both on [github](https://githu
 
 All players remain in the center of the "field", but can turn to face any direction within the cylinder of targets spawning around them.
 
-<img align="right" src="https://user-images.githubusercontent.com/10334426/70824816-e3f56980-1d97-11ea-9cd1-7b34f38dc7dd.png" width="300">
+<img align="left" src="https://user-images.githubusercontent.com/10334426/70824816-e3f56980-1d97-11ea-9cd1-7b34f38dc7dd.png" width="300">
 
 ### Controls
 
@@ -30,13 +30,21 @@ Shoot Burst | **Right Click**
 
 ## Technial Details
 
+<img align="left" src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="300">
+
+<img align="left" src="https://user-images.githubusercontent.com/10334426/70824293-d095ce80-1d96-11ea-8b84-6cc88886c3df.gif" width="300">
+
 ### Splash Screen Animation
+
+
+<img align="left" src="https://user-images.githubusercontent.com/10334426/70824294-d12e6500-1d96-11ea-974e-ca993fb9d5e9.gif" width="300">
 
 ### Sky-Cylinder
 
 ### Scoreboard
 
 ## Troubleshooting
+
 
 ## Contact
 
