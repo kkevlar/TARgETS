@@ -106,19 +106,19 @@ make -j4
 Much of this project's work was in making the networked game from scratch. 
 The image below shows four players all running on the same machine, with their cursor positions mirrored for all other players.
 
-<img src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="600">
+<img src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="800">
 
 ### Cube Spawn Animation
 
 
-<img  src="https://user-images.githubusercontent.com/10334426/70824293-d095ce80-1d96-11ea-8b84-6cc88886c3df.gif" width="300">
+<img  src="https://user-images.githubusercontent.com/10334426/70824293-d095ce80-1d96-11ea-8b84-6cc88886c3df.gif" width="800">
 
 ### Splash Screen Animation
 
 The splash screen has normal mapping, specular lighting, and makes use of instance rendering. 
 Feel free to tweak the values in `Billboard.cpp` to try out different animations.
 
-<img  src="https://user-images.githubusercontent.com/10334426/70824294-d12e6500-1d96-11ea-974e-ca993fb9d5e9.gif" width="300">
+<img  src="https://user-images.githubusercontent.com/10334426/70824294-d12e6500-1d96-11ea-974e-ca993fb9d5e9.gif" width="800">
 
 
 ### Sky-Cylinder
@@ -126,7 +126,7 @@ Feel free to tweak the values in `Billboard.cpp` to try out different animations
 Instead of a skybox, the project makes use of a sky-cylinder, where the space texture is mapped along the inside of the cylinder, as if it was unrolled to be a rectangle.
 Should be less distorted-looking for a long, rectangular skybox texture.
 
-<img  src="https://user-images.githubusercontent.com/10334426/70826324-78150000-1d9b-11ea-9bae-21d438dc5c37.png" width="300">
+<img  src="https://user-images.githubusercontent.com/10334426/70826324-78150000-1d9b-11ea-9bae-21d438dc5c37.png" width="800">
 
 ### Scoreboard
 
