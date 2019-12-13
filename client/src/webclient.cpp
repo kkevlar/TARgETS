@@ -1,4 +1,6 @@
 
+#define SERVER_ADDRESS "127.0.0.1"
+
 #ifdef _WIN32
 
 #define WIN32_LEAN_AND_MEAN
@@ -54,7 +56,7 @@ int __cdecl clientbegin(MessageContext* context)
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
-    iResult = getaddrinfo(/*"localhost"*/ "kevinkellar.com", DEFAULT_PORT,
+    iResult = getaddrinfo(SERVER_ADDRESS, DEFAULT_PORT,
                           &hints, &result);
     if (iResult != 0)
     {
@@ -290,7 +292,7 @@ int clientbegin(MessageContext* context)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-     if (inet_pton(AF_INET, /*"127.0.0.1"*/"104.248.79.114", &serv_addr.sin_addr) <= 0)
+     if (inet_pton(AF_INET, SERVER_ADDRESS, &serv_addr.sin_addr) <= 0)
      {
         printf("\nInvalid address/ Address not supported \n");
         return -1;
