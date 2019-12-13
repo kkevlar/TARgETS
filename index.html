@@ -1,0 +1,196 @@
+<html>
+    <head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+  <body>
+    <div style="width: 100%"> 
+    <div style="left: 15%; float: left; position: absolute; width: 70%">
+<h1 id="targets">TARgETS</h1>
+<p><img src="https://raw.githubusercontent.com/kkevlar/TARgETS/59e294d3d842eda237795decd068e722388ec005/client/resources/black.png" ></p>
+<p>Targets is an online, multiplayer, action game where players compete to shoot the most targets that spawn around all of them as quickly as possible. 
+The client-side is written in C++ using OpenGL and GLFW, while the server side is written using Java Sockets.
+Primarily developed on <strong>Windows</strong> 8.1 using Microsoft Visual Studio (.sln file included), but also tested on <strong>Ubuntu</strong> 18, building using CMake.
+Really should run on any *nix systems that have GLFW installed, but mileage may vary.
+Ubuntu will probably need <code>libglfw3-dev</code> and <code>libglm-dev</code> and similar packages are availible for brew on Mac I think.</p>
+<p>Developed by Kevin Kellar, initially as a quarter-long project for Professor Christian Eckhardt&#39;s Intro to Computer Graphics (CPE 471).
+Special thanks to Professor Eckhardt and Professor Zoe Wood for the base template code help start this project.</p>
+<p>This project is hosted (or at least it should be) both on <a href="https://github.com/kkevlar/targets">github</a> and on Professor Eckhardt&#39;s <a href="http://mixedrealitylab.io/projects2.html">Mixed Reality Lab</a>.</p>
+<h2 id="download-and-play-">Download and Play!</h2>
+<p>TARgETS is an online multiplayer game, so it may be a bit more difficult to just download and try out. 
+The &quot;client&quot; games won&#39;t be able to run without communication with the server, even just for a one player game.</p>
+<h3 id="download">Download</h3>
+<h4 id="clone-from-github">Clone from GitHub</h4>
+<p>My project, hosted on GitHub will have the most up-to-date code availible.</p>
+<pre><code class="lang-bash"><span class="hljs-comment"># Clone with SSH </span>
+git <span class="hljs-keyword">clone</span> <span class="hljs-title">git</span>@github.com:kkevlar/TARgETS.git
+
+
+<span class="hljs-comment"># OR</span>
+
+<span class="hljs-comment"># Clone with https</span>
+git <span class="hljs-keyword">clone</span> <span class="hljs-title">https</span>://github.com/kkevlar/TARgETS.git
+</code></pre>
+<h4 id="download-project-as-zip">Download Project as Zip</h4>
+<p><a href="https://github.com/kkevlar/TARgETS/archive/v1.0.zip">Download &#39;TARgETS&#39; here</a></p>
+<h3 id="server-setup">Server Setup</h3>
+<p>The Server is a Java backend written using Java ServerSockets. 
+It was originally developed using Eclipse, but can be run with a variety of java tools.</p>
+<p>Recommended Process:</p>
+<ol>
+<li>Clone/download the repo (see above)</li>
+<li>Install JDK 8 and  <ul>
+<li>Either: Ant or Eclipse</li>
+</ul>
+</li>
+<li>Run the server<ul>
+<li><code>cd server &amp;&amp; ant build &amp;&amp; bash ./runserver</code></li>
+<li>Run ShootServerMain.java in Eclipse</li>
+</ul>
+</li>
+</ol>
+<h3 id="client-setup">Client Setup</h3>
+<p>Depending on the version downloaded, the client will either be configured to connect to <code>localhost</code> or <code>kevinkellar.com</code>.
+If the server (see above) is running on the same machine as you intend to run the client, then change (or leave) the client configuration to use <code>localhost</code>.</p>
+<p>Recommended Process:</p>
+<ol>
+<li>Determine the ip of wherever the server is being hosted. <ul>
+<li>If the server is on the same machine as the client (<code>localhost</code>), then use <code>127.0.0.1</code>.  </li>
+<li>Do not use the &quot;domain&quot; version of the server. The *nix client can&#39;t do DNS lookup for whatever reason. Just provide the IP.</li>
+</ul>
+</li>
+<li>Change the IP at the top of webclient.cpp to the IP from step 1. <ul>
+<li><code>#define SERVER_ADDRESS &quot;127.0.0.1&quot;</code></li>
+</ul>
+</li>
+</ol>
+<p>Open the .sln file in Visual Stuio, or use CMake.</p>
+<pre><code class="lang-bash"><span class="hljs-keyword">cd</span> client
+<span class="hljs-built_in">mkdir</span> build
+cmake ..
+<span class="hljs-keyword">make</span> -j4
+./targets
+</code></pre>
+<h2 id="gameplay">Gameplay</h2>
+<p>All players remain in the center of the &quot;field&quot;, but can turn to face any direction within the cylinder of targets spawning around them.</p>
+<p><img src="https://user-images.githubusercontent.com/10334426/70824816-e3f56980-1d97-11ea-9cd1-7b34f38dc7dd.png" width="300"></p>
+<h3 id="controls">Controls</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Turn Left</td>
+<td><strong>A</strong></td>
+</tr>
+<tr>
+<td>Turn Right</td>
+<td><strong>D</strong></td>
+</tr>
+<tr>
+<td>Shoot</td>
+<td><strong>Left Click</strong></td>
+</tr>
+<tr>
+<td>Shoot Burst</td>
+<td><strong>Right Click</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="winning-player">Winning Player</h3>
+<p>The player with the highest score will have a yellow halo pulsing around their cursor.
+See the image below which shows a regular shot (Left Click), burst shot (Right Click), and the halo around the red cursor.</p>
+<p><img src="https://user-images.githubusercontent.com/10334426/70824290-d095ce80-1d96-11ea-8723-3dc6d9127981.gif" width="600"></p>
+<h2 id="gallery-and-technical-details">Gallery and Technical Details</h2>
+<h3 id="initial-networked-game">Initial Networked Game</h3>
+<p>Much of this project&#39;s work was in making the networked game from scratch. 
+The image below shows four players all running on the same machine, with their cursor positions mirrored for all other players.</p>
+<p><img src="https://user-images.githubusercontent.com/10334426/70824291-d095ce80-1d96-11ea-9267-3d12b51b0590.gif" width="800"></p>
+<h3 id="cube-spawn-animation">Cube Spawn Animation</h3>
+<p><img  src="https://user-images.githubusercontent.com/10334426/70824293-d095ce80-1d96-11ea-8b84-6cc88886c3df.gif" width="800"></p>
+<h3 id="splash-screen-animation">Splash Screen Animation</h3>
+<p>The splash screen has normal mapping, specular lighting, and makes use of instance rendering. 
+Feel free to tweak the values in <code>Billboard.cpp</code> to try out different animations.</p>
+<p><img  src="https://user-images.githubusercontent.com/10334426/70824294-d12e6500-1d96-11ea-974e-ca993fb9d5e9.gif" width="800"></p>
+<h3 id="sky-cylinder">Sky-Cylinder</h3>
+<p>Instead of a skybox, the project makes use of a sky-cylinder, where the space texture is mapped along the inside of the cylinder, as if it was unrolled to be a rectangle.
+Should be less distorted-looking for a long, rectangular skybox texture.</p>
+<p><img  src="https://user-images.githubusercontent.com/10334426/70826324-78150000-1d9b-11ea-9bae-21d438dc5c37.png" width="800"></p>
+<h3 id="scoreboard">Scoreboard</h3>
+<p>The scoreboard has not been implemented yet.
+The currently-winning player has a halo.</p>
+<h2 id="cpp-module-details">Cpp Module Details</h2>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Billboard</td>
+<td>Handles the splash screen and its animations</td>
+</tr>
+<tr>
+<td>Collision</td>
+<td>Encapsulates the collision-detection algorithm </td>
+</tr>
+<tr>
+<td>Cube</td>
+<td>Contains a variety of important classes, including the <code>Target</code> class and <code>InterpObject</code> class (parent of <code>Target</code>). There aren&#39;t any classes called <code>Cube</code> anymore.</td>
+</tr>
+<tr>
+<td>Laser</td>
+<td>Unimplemented so far</td>
+</tr>
+<tr>
+<td>main</td>
+<td>Handles most of the gameplay and setup</td>
+</tr>
+<tr>
+<td>message</td>
+<td>Handles incoming and outgoing messages to the server, including datatype serialization</td>
+</tr>
+<tr>
+<td>Shot</td>
+<td>Simple class which represents one of a player&#39;s shots</td>
+</tr>
+<tr>
+<td>ShotManager</td>
+<td>Handles the updating and rendering of every shot in the game</td>
+</tr>
+<tr>
+<td>Skybox</td>
+<td>:)</td>
+</tr>
+<tr>
+<td>webclient</td>
+<td>Super messily handles the actual connection with the server, including message serialization and deserialization.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Suggestion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recv failed with error:</code></td>
+<td>The client can&#39;t connect to the server. Check server configuration / setup (see above).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="contact">Contact</h2>
+<p>Feel free to email me at Kellar dot Kevin at Gmail with any questions about the project. :)</p>
+</div>
+    </div>
+</body>
+</html>
