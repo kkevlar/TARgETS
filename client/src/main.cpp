@@ -649,7 +649,9 @@ class Application : public EventCallbacks
         }
     }
 };
-//******************************************************************************************
+
+
+
 int main(int argc, char **argv)
 {
     std::string resourceDir =
@@ -674,6 +676,7 @@ int main(int argc, char **argv)
     application->init(resourceDir);
     application->initGeom();
     application->initTargetManager();
+
 
     glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR,
                      GLFW_CURSOR_HIDDEN);

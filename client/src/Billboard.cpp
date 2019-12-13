@@ -129,7 +129,7 @@ void Billboard::initEverythingElse(std::shared_ptr<Program>& bbprog)
             // cube.phase = map(2-(-cube.target.pos.x + cube.target.pos.y), -2,
             // 2, 0, 1);
             cube.phase += map(rand() % 1000, 0, 1000, -0.02, 0.02);
-            cube.phase += 0.5;
+            cube.phase += 0.6;
             cube.resetInterp();
             cube.dosin = 1;
             cube.texOffset.x = x * (1.0f / myCubeDim);

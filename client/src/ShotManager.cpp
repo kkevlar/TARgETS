@@ -165,6 +165,11 @@ void ShotManager::setMyShotAtIndex(Shot shot, int index, int myPlayerId)
     setGlobalShotAtIndex(shot, index);
 }
 
+#ifdef _WIN32
+#include "windows.h"
+#include "Mmsystem.h"
+#endif
+
 void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
                                        int myPlayerId,
                                        bool cooldown,
@@ -200,6 +205,10 @@ void ShotManager::shootAndSendToServer(glm::vec3 targetPos,
     clientMsgWrite(MSG_NEW_SHOT_FROM_CLIENT, tmpWriteBuf, result);
 
     setMyShotAtIndex(ball, nextShotIndex, myPlayerId);
+
+	#ifdef _WIN32
+	PlaySound(TEXT("../resources/laser.wav"), NULL, SND_ASYNC);
+	#endif
 }
 
 void ShotManager::advanceShots(float frametime)
