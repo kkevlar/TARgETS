@@ -10,6 +10,8 @@ Special thanks to Professor Eckhardt and Professor Zoe Wood for the base templat
 
 ## Gameplay
 
+
+
 ## Download and Play!
 
 ## Technial Details
@@ -20,5 +22,7 @@ Special thanks to Professor Eckhardt and Professor Zoe Wood for the base templat
 
 ### Scoreboard
 
+## Contact
 
+Feel free to email me at Kellar dot Kevin at Gmail with any questions about the project.
 
